@@ -55,6 +55,7 @@
             list-style: none;
             display: flex;
             gap: 20px;
+            transition: all 0.3s ease; /* Smooth transition for mobile toggle */
         }
         .nav-links li a {
             color: #aa5825;
@@ -73,6 +74,7 @@
             font-size: 1.8em;
             color: #aa5825;
             cursor: pointer;
+            z-index: 1001; /* Ensure it’s above the nav-links */
         }
 
         /* Hero Section */
@@ -365,21 +367,36 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .hamburger { display: block; }
+            .hamburger {
+                display: block;
+            }
             .nav-links {
-                display: none;
-                position: absolute;
-                top: 60px;
+                display: none; /* Hidden by default on mobile */
+                position: fixed; /* Changed to fixed for full-screen overlay */
+                top: 0;
                 left: 0;
                 width: 100%;
+                height: 100vh; /* Full height for mobile */
                 background: rgba(255, 255, 255, 0.95);
                 flex-direction: column;
+                align-items: center;
+                justify-content: center; /* Center items vertically */
                 padding: 20px;
                 box-shadow: 0 5px 15px rgba(170, 88, 37, 0.2);
+                z-index: 1000;
             }
-            .nav-links.active { display: flex; }
-            .hero h1 { font-size: 2.5em; }
-            .description { font-size: 1.1em; }
+            .nav-links.active {
+                display: flex; /* Show when active */
+            }
+            .nav-links li {
+                margin: 15px 0; /* Space between items */
+            }
+            .hero h1 {
+                font-size: 2.5em;
+            }
+            .description {
+                font-size: 1.1em;
+            }
             .carousel-item {
                 height: 300px;
                 background-size: auto 300px;
@@ -459,7 +476,7 @@
     </section>
     <section id="feedback" class="feedback">
         <h2>Share Your Cosmic Thoughts</h2>
-        <form class="feedback-form" method="POST" action="{% url 'cafe:submit_feedback' %}">
+        <form class="feedback-form" method="POST" action="{% url 'cafe:home' %}">
             {% csrf_token %}
             <input type="text" name="author" placeholder="Your Name" required>
             <textarea name="content" placeholder="Your Feedback" required></textarea>
@@ -495,11 +512,24 @@
         // Hamburger Menu Toggle
         const hamburger = document.querySelector('.hamburger');
         const navLinks = document.querySelector('.nav-links');
+
         hamburger.addEventListener('click', () => {
             navLinks.classList.toggle('active');
+            // Toggle hamburger icon between ☰ and ✕
+            hamburger.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
         });
 
-        // Smooth Scrolling for In-Page Navigation Only
+        // Close menu when clicking a nav item on mobile
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    navLinks.classList.remove('active');
+                    hamburger.textContent = '☰'; // Reset to hamburger icon
+                }
+            });
+        });
+
+        // Smooth Scrolling for In-Page Navigation
         document.querySelectorAll('.nav-item, .cta-button').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 const href = this.getAttribute('href');
@@ -508,9 +538,6 @@
                     const targetId = href.substring(1);
                     const targetElement = document.getElementById(targetId);
                     targetElement.scrollIntoView({ behavior: 'smooth' });
-                    if (window.innerWidth <= 768) {
-                        navLinks.classList.remove('active');
-                    }
                 }
             });
         });
