@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Login - Rokna Cafe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta tag -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet"> <!-- Added fonts -->
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -14,7 +16,28 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            color: #aa5825;
+            overflow-x: hidden;
+            position: relative;
         }
+
+        /* Particles Container */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(228, 211, 193, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(216, 155, 110, 0.6);
+        }
+
         .login-container {
             width: 100%;
             max-width: 400px;
@@ -23,11 +46,14 @@
             border-radius: 15px;
             box-shadow: 0 8px 20px rgba(170, 88, 37, 0.2);
             text-align: center;
+            z-index: 1;
         }
         h1 {
+            font-family: 'Orbitron', sans-serif; /* Consistent with home.html */
             color: #aa5825;
             font-size: 2em;
             margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(170, 88, 37, 0.3); /* Added subtle shadow */
         }
         form {
             display: flex;
@@ -39,11 +65,15 @@
             border: 1px solid #aa5825;
             border-radius: 5px;
             font-size: 1em;
-            transition: border-color 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            background: rgba(255, 255, 255, 0.8);
+            color: #aa5825;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
         input[type="text"]:focus, input[type="password"]:focus {
             border-color: #d89b6e;
             outline: none;
+            box-shadow: 0 0 5px rgba(216, 155, 110, 0.5);
         }
         button[type="submit"], .back-button {
             padding: 10px;
@@ -52,11 +82,13 @@
             border: none;
             border-radius: 5px;
             font-size: 1.1em;
+            font-family: 'Poppins', sans-serif;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: background 0.3s ease, transform 0.3s ease;
         }
         button[type="submit"]:hover, .back-button:hover {
             background: #d89b6e;
+            transform: scale(1.05); /* Added subtle scale effect */
         }
         .back-button {
             margin-top: 15px;
@@ -66,27 +98,105 @@
         p {
             margin-top: 15px;
             color: #aa5825;
+            font-size: 0.9em;
         }
         a {
             color: #aa5825;
             text-decoration: none;
+            font-weight: 500;
             transition: color 0.3s ease;
         }
         a:hover {
             color: #d89b6e;
         }
+        /* Error messages */
+        .errorlist {
+            color: #d89b6e;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            list-style: none;
+        }
+
+        /* Responsive Design for Mobile */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 20px;
+                margin: 20px; /* Added margin for edge spacing */
+                max-width: 100%; /* Full width on small screens */
+            }
+            h1 {
+                font-size: 1.5em; /* Smaller title */
+            }
+            input[type="text"], input[type="password"] {
+                padding: 8px; /* Slightly smaller padding */
+                font-size: 0.9em; /* Smaller text */
+            }
+            button[type="submit"], .back-button {
+                padding: 8px;
+                font-size: 1em; /* Smaller button text */
+            }
+            p {
+                font-size: 0.8em; /* Smaller paragraph text */
+            }
+            .errorlist {
+                font-size: 0.8em; /* Smaller error text */
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="particles"></div>
     <div class="login-container">
         <h1>Login</h1>
         <form method="POST">
             {% csrf_token %}
             {{ form.as_p }}
+            {% if form.errors %}
+                <ul class="errorlist">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
             <button type="submit">Login</button>
         </form>
         <p>Don't have an account? <a href="{% url 'cafe:signup' %}">Sign Up</a></p>
         <a href="{% url 'cafe:home' %}" class="back-button">Back to Home</a>
     </div>
+
+    <script>
+        // Particle Animation (same as home.html)
+        const particlesContainer = document.querySelector('.particles');
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            const size = Math.random() * 5 + 2;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.top = `${Math.random() * 100}vh`;
+            const duration = Math.random() * 10 + 5;
+            particle.style.animation = `float ${duration}s infinite linear`;
+            particlesContainer.appendChild(particle);
+            setTimeout(() => particle.remove(), duration * 1000);
+        }
+        setInterval(createParticle, 300);
+
+        // Float Animation for Particles
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes float {
+                0% { transform: translateY(0) translateX(0); opacity: 0.5; }
+                50% { transform: translateY(-20vh) translateX(${Math.random() * 20 - 10}vw); opacity: 0.8; }
+                100% { transform: translateY(-40vh) translateX(${Math.random() * 20 - 10}vw); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+    </script>
 </body>
 </html>
