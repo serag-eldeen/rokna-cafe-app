@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta tag -->
     <title>Place an Order</title>
     <style>
         /* Reset and Global Styles */
@@ -61,8 +62,8 @@
 
         .order-container {
             max-width: 1100px; /* Increased width for grid */
-            margin: 100px auto;
-            padding: 50px;
+            margin: 50px auto; /* Reduced for mobile */
+            padding: 20px; /* Reduced padding */
             background: rgba(228, 211, 193, 0.95);
             border-radius: 25px;
             box-shadow: 0 10px 40px rgba(170, 88, 37, 0.3), 0 0 60px rgba(216, 155, 110, 0.2);
@@ -78,10 +79,10 @@
         }
 
         h1 {
-            font-size: 3em;
+            font-size: 2.5em; /* Reduced base size */
             color: #aa5825;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-shadow: 0 0 15px rgba(170, 88, 37, 0.5), 0 0 25px rgba(228, 211, 193, 0.3);
             animation: glow 2s infinite ease-in-out;
         }
@@ -92,10 +93,10 @@
         }
 
         p {
-            font-size: 1.3em;
+            font-size: 1.1em; /* Reduced base size */
             color: #aa5825;
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             text-shadow: 0 0 5px rgba(170, 88, 37, 0.2);
         }
 
@@ -115,16 +116,16 @@
         #order-form {
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 20px; /* Reduced gap */
             align-items: center;
         }
 
         .items-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Smaller min width */
+            gap: 15px; /* Reduced gap */
             width: 100%;
-            padding: 20px;
+            padding: 15px; /* Reduced padding */
             background: rgba(216, 155, 110, 0.1);
             border-radius: 15px;
             box-shadow: inset 0 0 20px rgba(170, 88, 37, 0.2);
@@ -134,7 +135,7 @@
             background: rgba(228, 211, 193, 0.8);
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(170, 88, 37, 0.15);
-            padding: 15px;
+            padding: 10px; /* Reduced padding */
             text-align: center;
             transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
         }
@@ -147,38 +148,38 @@
 
         .item-card img {
             max-width: 100%;
-            max-height: 120px;
+            max-height: 100px; /* Reduced image height */
             border-radius: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .item-card h3 {
-            font-size: 1.2em;
+            font-size: 1em; /* Reduced size */
             color: #aa5825;
             margin-bottom: 5px;
             text-shadow: 0 0 5px rgba(170, 88, 37, 0.2);
         }
 
         .item-card p {
-            font-size: 1em;
+            font-size: 0.9em; /* Reduced size */
             color: #aa5825;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .item-card input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
+            width: 18px; /* Slightly smaller */
+            height: 18px;
             accent-color: #aa5825;
             cursor: pointer;
         }
 
         button[type="submit"] {
-            padding: 15px 40px;
+            padding: 12px 30px; /* Reduced padding */
             background: linear-gradient(45deg, #e4d3c1, #d89b6e);
             color: #aa5825;
             border: none;
             border-radius: 30px;
-            font-size: 1.3em;
+            font-size: 1.1em; /* Reduced size */
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 5px 20px rgba(170, 88, 37, 0.3);
@@ -195,28 +196,30 @@
         .success {
             color: #aa5825;
             background: rgba(170, 88, 37, 0.2);
-            padding: 15px;
+            padding: 12px; /* Reduced padding */
             border-radius: 10px;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             box-shadow: 0 5px 15px rgba(170, 88, 37, 0.2);
+            font-size: 0.9em; /* Reduced size */
         }
 
         .error {
             color: #d89b6e;
             background: rgba(216, 155, 110, 0.2);
-            padding: 15px;
+            padding: 12px; /* Reduced padding */
             border-radius: 10px;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             box-shadow: 0 5px 15px rgba(216, 155, 110, 0.2);
+            font-size: 0.9em; /* Reduced size */
         }
 
         .back-link {
             display: block;
             text-align: center;
-            margin-top: 30px;
-            font-size: 1.2em;
+            margin-top: 20px; /* Reduced margin */
+            font-size: 1em; /* Reduced size */
             color: #aa5825;
             transition: color 0.3s ease, transform 0.3s ease;
         }
@@ -224,6 +227,88 @@
         .back-link:hover {
             color: #d89b6e;
             transform: scale(1.1);
+        }
+
+        /* Mobile-Specific Adjustments */
+        @media (max-width: 768px) {
+            .order-container {
+                margin: 20px 10px; /* Reduced margin */
+                padding: 15px;
+                max-width: 100%; /* Full width */
+            }
+            h1 {
+                font-size: 1.8em; /* Smaller header */
+            }
+            p {
+                font-size: 1em;
+            }
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Smaller items */
+                gap: 10px;
+                padding: 10px;
+            }
+            .item-card {
+                padding: 8px;
+            }
+            .item-card img {
+                max-height: 80px; /* Smaller images */
+            }
+            .item-card h3 {
+                font-size: 0.9em;
+            }
+            .item-card p {
+                font-size: 0.8em;
+            }
+            .item-card input[type="checkbox"] {
+                width: 16px;
+                height: 16px;
+            }
+            button[type="submit"] {
+                padding: 10px 25px;
+                font-size: 1em;
+            }
+            .success, .error {
+                padding: 10px;
+                font-size: 0.85em;
+            }
+            .back-link {
+                margin-top: 15px;
+                font-size: 0.9em;
+            }
+        }
+
+        /* Extra small screens (e.g., older phones) */
+        @media (max-width: 480px) {
+            .order-container {
+                margin: 10px 5px;
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            p {
+                font-size: 0.9em;
+            }
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Even smaller items */
+                gap: 8px;
+            }
+            .item-card {
+                padding: 6px;
+            }
+            .item-card img {
+                max-height: 60px;
+            }
+            .item-card h3 {
+                font-size: 0.85em;
+            }
+            .item-card p {
+                font-size: 0.75em;
+            }
+            button[type="submit"] {
+                padding: 8px 20px;
+                font-size: 0.9em;
+            }
         }
     </style>
 </head>
@@ -237,7 +322,7 @@
             <p class="error">{{ error }}</p>
         {% endif %}
         {% if user.is_authenticated %}
-            <p>Hello, {{ user.username }}! <a href="{% url 'logout' %}">Logout</a></p>
+            <p>Hello, {{ user.username }}! <a href="{% url 'cafe:logout' %}">Logout</a></p>
             <form method="POST" id="order-form" action="{% url 'cafe:place_order' %}">
                 {% csrf_token %}
                 <div class="items-grid">

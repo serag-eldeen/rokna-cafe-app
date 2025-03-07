@@ -394,15 +394,10 @@ def add_item(request):
         name = request.POST.get('name')
         price = request.POST.get('price')
         image = request.FILES.get('image')
-        print(f"Name: {name}, Price: {price}, Image: {image}")  # Debug output
+        print(f"Name: {name}, Price: {price}, Image: {image}, Image Type: {type(image)}")
         if Item.objects.filter(name=name).exists():
             return render(request, 'cafe/admin_page.html', {
-                'tables': Table.objects.all(),
-                'rooms': Room.objects.all(),
-                'items': Item.objects.all(),
-                'table_reservations': TableReservation.objects.all(),
-                'room_reservations': RoomReservation.objects.all(),
-                'orders': Order.objects.all(),
+                # Context
                 'error': 'Item name already exists'
             })
         try:
@@ -411,15 +406,11 @@ def add_item(request):
             if image:
                 item.image = image
             item.save()
+            print(f"Saved item image path: {item.image.url}")  # Confirm saved URL
             return redirect('cafe:admin_page')
         except ValueError:
             return render(request, 'cafe/admin_page.html', {
-                'tables': Table.objects.all(),
-                'rooms': Room.objects.all(),
-                'items': Item.objects.all(),
-                'table_reservations': TableReservation.objects.all(),
-                'room_reservations': RoomReservation.objects.all(),
-                'orders': Order.objects.all(),
+                # Context
                 'error': 'Invalid price'
             })
     return redirect('cafe:admin_page')

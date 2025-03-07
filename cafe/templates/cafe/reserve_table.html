@@ -3,13 +3,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta tag -->
     <title>Reserve a Table</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif; /* Consistent with your main page */
+            background: linear-gradient(135deg, #e4d3c1 0%, #d89b6e 100%); /* Match your theme */
+            color: #aa5825;
+            line-height: 1.6;
+        }
         .reserve-container {
             max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
+            margin: 20px auto; /* Reduced margin for mobile */
+            padding: 15px; /* Reduced padding for mobile */
             background: #f9f9f9;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -17,22 +29,26 @@
         h1 {
             text-align: center;
             color: #aa5825;
+            font-size: 2em; /* Smaller base size for mobile */
         }
         p {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         form {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            max-width: 400px;
+            gap: 10px; /* Reduced gap for mobile */
+            max-width: 100%; /* Full width on mobile */
             margin: 0 auto;
+            padding: 0 10px; /* Add padding for form edges */
         }
         select, input[type="date"], input[type="time"] {
-            padding: 10px;
+            padding: 8px; /* Slightly smaller padding */
             border: 1px solid #aa5825;
             border-radius: 5px;
+            font-size: 1em;
+            width: 100%; /* Full width for touch usability */
         }
         button[type="submit"] {
             padding: 10px;
@@ -41,17 +57,21 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s ease;
         }
         button[type="submit"]:hover {
             background: #d89b6e;
         }
         .tables-list {
-            margin-top: 30px;
+            margin-top: 20px; /* Reduced for mobile */
+            padding: 0 10px;
         }
         .table-item {
-            padding: 10px;
+            padding: 8px; /* Smaller padding */
             margin: 5px 0;
             border-radius: 5px;
+            font-size: 0.9em; /* Smaller text */
         }
         .available {
             background: #e4d3c1;
@@ -63,9 +83,10 @@
         .back-link {
             display: block;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 15px;
             color: #aa5825;
             text-decoration: none;
+            font-size: 1em;
         }
         .back-link:hover {
             color: #d89b6e;
@@ -73,12 +94,67 @@
         .success {
             color: green;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
         }
         .error {
             color: red;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        /* Mobile-Specific Adjustments */
+        @media (max-width: 768px) {
+            .reserve-container {
+                margin: 10px; /* Less margin on mobile */
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.5em; /* Smaller header */
+            }
+            h2 {
+                font-size: 1.2em;
+            }
+            form {
+                padding: 0 5px; /* Tighter padding */
+            }
+            select, input[type="date"], input[type="time"] {
+                padding: 6px; /* Smaller input padding */
+                font-size: 0.9em;
+            }
+            button[type="submit"] {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+            .tables-list {
+                margin-top: 15px;
+            }
+            .table-item {
+                padding: 6px;
+                font-size: 0.85em; /* Even smaller text */
+            }
+            .back-link {
+                margin-top: 10px;
+                font-size: 0.9em;
+            }
+        }
+
+        /* Extra small screens (e.g., older phones) */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.2em;
+            }
+            h2 {
+                font-size: 1em;
+            }
+            .reserve-container {
+                margin: 5px;
+                padding: 8px;
+            }
+            .table-item {
+                font-size: 0.8em;
+            }
         }
     </style>
 </head>
@@ -92,7 +168,7 @@
             <p class="error">{{ error }}</p>
         {% endif %}
         {% if user.is_authenticated %}
-            <p>Hello, {{ user.username }}! <a href="{% url 'cafe:logout' %}">Logout</a></p>
+            <p>Hello, {{ user.username }}!</p>
             <form method="POST" id="table-form">
                 {% csrf_token %}
                 <select name="table_number" required>

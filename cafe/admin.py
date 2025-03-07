@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Table, Room, Item, TableReservation, RoomReservation, Order, OrderItem
+from .models import Table, Room, Item, TableReservation, RoomReservation, Order, OrderItem,Testimonial
 from django.utils.html import format_html
 
 # Table Admin
@@ -76,3 +76,16 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_display = ('order', 'item', 'quantity')
     search_fields = ('order__user__username', 'item__name')
     ordering = ('order__created_at',)
+
+# Testimonial Admin
+@admin.register(Testimonial)
+class TestimonialAdmin(admin.ModelAdmin):
+    list_display = ('author', 'content_preview', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('author', 'content')
+    ordering = ('-created_at',)
+    date_hierarchy = 'created_at'
+
+    def content_preview(self, obj):
+        return obj.content[:50] + ('...' if len(obj.content) > 50 else '')
+    content_preview.short_description = 'Content'    
