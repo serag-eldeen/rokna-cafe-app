@@ -1,0 +1,248 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Rooms</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Orbitron', 'Poppins', sans-serif;
+            background: linear-gradient(180deg, #e4d3c1 0%, #d89b6e 100%);
+            color: #aa5825;
+            line-height: 1.8;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(170, 88, 37, 0.3) 0%, transparent 60%);
+            z-index: -1;
+            animation: cosmic-pulse 12s infinite ease-in-out;
+        }
+        @keyframes cosmic-pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.7; }
+        }
+        body::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(228, 211, 193, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 25px rgba(228, 211, 193, 0.6);
+            animation: orbit 18s infinite ease-in-out;
+            top: 15%;
+            left: 25%;
+        }
+        @keyframes orbit {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+            50% { transform: translate(50vw, 60vh) scale(1.4); opacity: 0.8; }
+        }
+        .admin-container {
+            max-width: 1100px;
+            margin: 80px auto;
+            padding: 40px;
+            background: rgba(228, 211, 193, 0.9);
+            border-radius: 30px;
+            box-shadow: 0 12px 50px rgba(170, 88, 37, 0.3), 0 0 70px rgba(216, 155, 110, 0.2);
+            position: relative;
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+            border: 3px solid rgba(170, 88, 37, 0.5);
+        }
+        .admin-container:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 18px 60px rgba(170, 88, 37, 0.4), 0 0 90px rgba(216, 155, 110, 0.3);
+        }
+        h1 {
+            font-size: 3.5em;
+            color: #aa5825;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 0 0 20px rgba(170, 88, 37, 0.6), 0 0 30px rgba(228, 211, 193, 0.4);
+            animation: glow 2.5s infinite ease-in-out;
+        }
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(170, 88, 37, 0.6), 0 0 30px rgba(228, 211, 193, 0.4); }
+            50% { text-shadow: 0 0 30px rgba(170, 88, 37, 0.8), 0 0 40px rgba(228, 211, 193, 0.6); }
+        }
+        .section {
+            margin-bottom: 50px;
+            padding: 25px;
+            background: rgba(216, 155, 110, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(170, 88, 37, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(216, 155, 110, 0.25);
+        }
+        h2 {
+            font-size: 2em;
+            color: #aa5825;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(170, 88, 37, 0.3);
+        }
+        form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        input[type="number"] {
+            padding: 12px 18px;
+            font-size: 1.1em;
+            background: rgba(228, 211, 193, 0.7);
+            border: 2px solid #aa5825;
+            border-radius: 10px;
+            color: #aa5825;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+            width: 200px;
+        }
+        input[type="number"]:focus {
+            border-color: #d89b6e;
+            box-shadow: 0 0 15px rgba(216, 155, 110, 0.5);
+            transform: scale(1.02);
+        }
+        button[type="submit"] {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #e4d3c1, #d89b6e);
+            color: #aa5825;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(170, 88, 37, 0.2);
+            transition: transform 0.4s ease, background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
+        }
+        button[type="submit"]:hover {
+            transform: translateY(-5px) scale(1.05);
+            background: linear-gradient(45deg, #d89b6e, #aa5825);
+            color: #e4d3c1;
+            box-shadow: 0 10px 25px rgba(216, 155, 110, 0.4);
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 15px 20px;
+            margin: 10px 0;
+            background: rgba(228, 211, 193, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(170, 88, 37, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        }
+        li:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(216, 155, 110, 0.3);
+            background: rgba(216, 155, 110, 0.3);
+        }
+        .edit-btn, .delete-btn {
+            padding: 8px 15px;
+            font-size: 0.9em;
+            background: #e4d3c1;
+            color: #aa5825;
+            border: 2px solid #aa5825;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .edit-btn:hover {
+            transform: translateY(-3px);
+            background: #d89b6e;
+            color: #e4d3c1;
+            box-shadow: 0 5px 15px rgba(216, 155, 110, 0.4);
+        }
+        .delete-btn {
+            margin-left: 10px;
+            background: rgba(170, 88, 37, 0.2);
+        }
+        .delete-btn:hover {
+            transform: translateY(-3px);
+            background: #aa5825;
+            color: #e4d3c1;
+            box-shadow: 0 5px 15px rgba(170, 88, 37, 0.4);
+        }
+        .success {
+            color: #aa5825;
+            background: rgba(170, 88, 37, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(170, 88, 37, 0.2);
+        }
+        .error {
+            color: #d89b6e;
+            background: rgba(216, 155, 110, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(216, 155, 110, 0.2);
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 1.3em;
+            color: #aa5825;
+            text-decoration: none;
+            transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
+        }
+        .back-link:hover {
+            color: #d89b6e;
+            transform: scale(1.1);
+            text-shadow: 0 0 10px rgba(216, 155, 110, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Manage Rooms</h1>
+        {% if message %}
+            <p class="success">{{ message }}</p>
+        {% endif %}
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        <div class="section">
+            <form id="add-room-form" method="POST" action="{% url 'cafe:add_room' %}">
+                {% csrf_token %}
+                <input type="number" name="number" placeholder="Room Number" required>
+                <button type="submit">Add Room</button>
+            </form>
+            <ul>
+                {% for room in rooms %}
+                    <li>
+                        Room {{ room.number }} - {{ room.is_available|yesno:"Available,Reserved" }}
+                        <div>
+                            <button class="edit-btn" data-id="{{ room.id }}" data-number="{{ room.number }}" data-available="{{ room.is_available }}">Edit</button>
+                            <button class="delete-btn" data-id="{{ room.id }}">Delete</button>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <a href="{% url 'cafe:admin_dashboard' %}" class="back-link">Back to Dashboard</a>
+    </div>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

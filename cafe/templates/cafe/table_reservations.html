@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reserve a Table</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .reserve-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #aa5825;
+        }
+        p {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        select, input[type="date"], input[type="time"] {
+            padding: 10px;
+            border: 1px solid #aa5825;
+            border-radius: 5px;
+        }
+        button[type="submit"] {
+            padding: 10px;
+            background: #aa5825;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background: #d89b6e;
+        }
+        .tables-list {
+            margin-top: 30px;
+        }
+        .table-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .available {
+            background: #e4d3c1;
+        }
+        .reserved {
+            background: #d89b6e;
+            color: white;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #aa5825;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            color: #d89b6e;
+        }
+        .success {
+            color: green;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="reserve-container">
+        <h1>Reserve a Table</h1>
+        {% if message %}
+            <p class="success">{{ message }}</p>
+        {% endif %}
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        {% if user.is_authenticated %}
+            <p>Hello, {{ user.username }}! <a href="{% url 'cafe:logout' %}">Logout</a></p>
+            <form method="POST" id="table-form">
+                {% csrf_token %}
+                <select name="table_number" required>
+                    <option value="" disabled selected>Select Table</option>
+                    {% for table in tables %}
+                        <option value="{{ table.number }}">Table {{ table.number }}</option>
+                    {% endfor %}
+                </select>
+                <input type="date" name="date" required>
+                <input type="time" name="start_time" required>
+                <select name="duration" required>
+                    <option value="" disabled selected>Select Duration</option>
+                    <option value="30">30 min</option>
+                    <option value="60">1 hour</option>
+                    <option value="120">2 hours</option>
+                </select>
+                <button type="submit">Reserve</button>
+            </form>
+
+            <div class="tables-list">
+                <h2>All Tables</h2>
+                {% for table in all_tables %}
+                    <div class="table-item {% if table.is_available %}available{% else %}reserved{% endif %}">
+                        Table {{ table.number }} - 
+                        {% if table.is_available %}
+                            Available
+                        {% else %}
+                            Reserved
+                            {% for reservation in reservations %}
+                                {% if reservation.table.id == table.id %}
+                                    ({{ reservation.date }} at {{ reservation.start_time }} for {{ reservation.duration }} min)
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Please <a href="{% url 'login' %}">login</a> or <a href="{% url 'cafe:signup' %}">sign up</a> to reserve.</p>
+        {% endif %}
+        <a href="{% url 'cafe:home' %}" class="back-link">Back</a>
+    </div>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>
