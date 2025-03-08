@@ -3,11 +3,10 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
 from django.views.decorators.csrf import csrf_exempt
-from .models import Table, Room, Item, TableReservation, RoomReservation, Order, OrderItem
-from django.conf import settings
+from .models import Table, Room, Item, TableReservation, RoomReservation, Order, OrderItem, Testimonial, ITEM_TYPES  # Import ITEM_TYPESfrom django.conf import settings
 from datetime import datetime, timedelta
 import os
-from .models import Testimonial
+from django.conf import settings
 
 def home(request):
     if request.method == 'POST':
@@ -180,12 +179,19 @@ def reserve_ps_room(request):
         'reservations': reservations
     })
 
-# Place Order View
 @login_required
 def place_order(request):
     if request.method == 'POST':
         items = Item.objects.filter(is_available=True)
+        table_number = request.POST.get('table_number')
+        item_type = request.POST.get('item_type')  # Get selected item type
         selected_items = []
+
+        # Filter items by type if specified
+        if item_type:
+            items = items.filter(item_type=item_type)
+
+        # Collect selected items
         for item in items:
             if request.POST.get(f'item_{item.id}'):
                 selected_items.append((item, 1))
@@ -193,26 +199,64 @@ def place_order(request):
         if not selected_items:
             return render(request, 'cafe/place_order.html', {
                 'items': items,
+                'tables': Table.objects.all(),
+                'item_types': ITEM_TYPES,  # Use the imported ITEM_TYPES
+                'selected_type': item_type,
                 'error': 'No items selected'
             })
 
-        order = Order(user=request.user)
+        if not table_number:
+            return render(request, 'cafe/place_order.html', {
+                'items': items,
+                'tables': Table.objects.all(),
+                'item_types': ITEM_TYPES,
+                'selected_type': item_type,
+                'error': 'Please select a table number'
+            })
+
+        try:
+            table = Table.objects.get(number=table_number)
+        except Table.DoesNotExist:
+            return render(request, 'cafe/place_order.html', {
+                'items': items,
+                'tables': Table.objects.all(),
+                'item_types': ITEM_TYPES,
+                'selected_type': item_type,
+                'error': 'Invalid table number'
+            })
+
+        # Create and save the order with the table
+        order = Order(user=request.user, table=table)
         order.save()
         for item, quantity in selected_items:
             if not item.is_available:
+                order.delete()  # Rollback if an item is unavailable
                 return render(request, 'cafe/place_order.html', {
                     'items': items,
+                    'tables': Table.objects.all(),
+                    'item_types': ITEM_TYPES,
+                    'selected_type': item_type,
                     'error': f'{item.name} is out of stock'
                 })
             OrderItem.objects.create(order=order, item=item, quantity=quantity)
+
         return render(request, 'cafe/place_order.html', {
             'items': items,
+            'tables': Table.objects.all(),
+            'item_types': ITEM_TYPES,
+            'selected_type': item_type,
             'message': 'Order placed successfully!'
         })
 
+    # GET request: Show all available items initially
     items = Item.objects.filter(is_available=True)
-    return render(request, 'cafe/place_order.html', {'items': items})
-
+    tables = Table.objects.all()
+    return render(request, 'cafe/place_order.html', {
+        'items': items,
+        'tables': tables,
+        'item_types': ITEM_TYPES,  # Use the imported ITEM_TYPES
+        'selected_type': None
+    })
 # Staff Check
 def is_staff(user):
     return user.is_staff
@@ -227,14 +271,17 @@ def admin_page(request):
     table_reservations = TableReservation.objects.all()
     room_reservations = RoomReservation.objects.all()
     orders = Order.objects.all()
-    return render(request, 'cafe/admin_page.html', {
+
+    context = {
         'tables': tables,
         'rooms': rooms,
         'items': items,
         'table_reservations': table_reservations,
         'room_reservations': room_reservations,
-        'orders': orders
-    })
+        'orders': orders,
+        'item_types': ITEM_TYPES,  # Added ITEM_TYPES for the admin page dropdown
+    }
+    return render(request, 'cafe/admin_page.html', context)
 
 # Admin Table Management
 @csrf_exempt
@@ -386,33 +433,65 @@ def delete_room(request, room_id):
             'error': 'Room not found'
         })
 
-@csrf_exempt
 @login_required
 @user_passes_test(is_staff)
 def add_item(request):
+    """
+    Handle adding a new item via POST request from the admin panel.
+    
+    Args:
+        request: HTTP request object.
+    
+    Returns:
+        Redirect to admin_page on success, or with an error message.
+    """
     if request.method == 'POST':
         name = request.POST.get('name')
         price = request.POST.get('price')
+        item_type = request.POST.get('item_type')  # Get the selected item_type
         image = request.FILES.get('image')
-        print(f"Name: {name}, Price: {price}, Image: {image}, Image Type: {type(image)}")
-        if Item.objects.filter(name=name).exists():
+
+        # Validate inputs
+        if not name or not price or not item_type:
             return render(request, 'cafe/admin_page.html', {
-                # Context
-                'error': 'Item name already exists'
+                'error': 'All fields (name, price, item type) are required.',
+                'tables': Table.objects.all(),
+                'rooms': Room.objects.all(),
+                'items': Item.objects.all(),
+                'table_reservations': TableReservation.objects.all(),
+                'room_reservations': RoomReservation.objects.all(),
+                'orders': Order.objects.all(),
+                'item_types': ITEM_TYPES
             })
+
         try:
-            price = float(price)
-            item = Item(name=name, price=price)
-            if image:
-                item.image = image
+            price = float(price)  # Ensure price is a valid number
+            # Verify item_type is valid
+            if item_type not in dict(ITEM_TYPES):
+                raise ValueError("Invalid item type selected.")
+            
+            # Create and save the new item
+            item = Item(
+                name=name,
+                price=price,
+                item_type=item_type,  # Explicitly set item_type
+                image=image
+            )
             item.save()
-            print(f"Saved item image path: {item.image.url}")  # Confirm saved URL
             return redirect('cafe:admin_page')
-        except ValueError:
+        except ValueError as e:
             return render(request, 'cafe/admin_page.html', {
-                # Context
-                'error': 'Invalid price'
+                'error': str(e),
+                'tables': Table.objects.all(),
+                'rooms': Room.objects.all(),
+                'items': Item.objects.all(),
+                'table_reservations': TableReservation.objects.all(),
+                'room_reservations': RoomReservation.objects.all(),
+                'orders': Order.objects.all(),
+                'item_types': ITEM_TYPES
             })
+
+    # If not POST, redirect back to admin page
     return redirect('cafe:admin_page')
 @csrf_exempt
 @login_required

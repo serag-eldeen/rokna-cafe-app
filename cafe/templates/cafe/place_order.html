@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta tag -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Place an Order</title>
     <style>
         /* Reset and Global Styles */
@@ -61,9 +61,9 @@
         }
 
         .order-container {
-            max-width: 1100px; /* Increased width for grid */
-            margin: 50px auto; /* Reduced for mobile */
-            padding: 20px; /* Reduced padding */
+            max-width: 1100px;
+            margin: 50px auto;
+            padding: 20px;
             background: rgba(228, 211, 193, 0.95);
             border-radius: 25px;
             box-shadow: 0 10px 40px rgba(170, 88, 37, 0.3), 0 0 60px rgba(216, 155, 110, 0.2);
@@ -79,7 +79,7 @@
         }
 
         h1 {
-            font-size: 2.5em; /* Reduced base size */
+            font-size: 2.5em;
             color: #aa5825;
             text-align: center;
             margin-bottom: 20px;
@@ -93,7 +93,7 @@
         }
 
         p {
-            font-size: 1.1em; /* Reduced base size */
+            font-size: 1.1em;
             color: #aa5825;
             text-align: center;
             margin-bottom: 20px;
@@ -116,16 +116,16 @@
         #order-form {
             display: flex;
             flex-direction: column;
-            gap: 20px; /* Reduced gap */
+            gap: 20px;
             align-items: center;
         }
 
         .items-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Smaller min width */
-            gap: 15px; /* Reduced gap */
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
             width: 100%;
-            padding: 15px; /* Reduced padding */
+            padding: 15px;
             background: rgba(216, 155, 110, 0.1);
             border-radius: 15px;
             box-shadow: inset 0 0 20px rgba(170, 88, 37, 0.2);
@@ -135,7 +135,7 @@
             background: rgba(228, 211, 193, 0.8);
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(170, 88, 37, 0.15);
-            padding: 10px; /* Reduced padding */
+            padding: 10px;
             text-align: center;
             transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
         }
@@ -148,38 +148,57 @@
 
         .item-card img {
             max-width: 100%;
-            max-height: 100px; /* Reduced image height */
+            max-height: 100px;
             border-radius: 8px;
             margin-bottom: 8px;
         }
 
         .item-card h3 {
-            font-size: 1em; /* Reduced size */
+            font-size: 1em;
             color: #aa5825;
             margin-bottom: 5px;
             text-shadow: 0 0 5px rgba(170, 88, 37, 0.2);
         }
 
         .item-card p {
-            font-size: 0.9em; /* Reduced size */
+            font-size: 0.9em;
             color: #aa5825;
             margin-bottom: 8px;
         }
 
         .item-card input[type="checkbox"] {
-            width: 18px; /* Slightly smaller */
+            width: 18px;
             height: 18px;
             accent-color: #aa5825;
             cursor: pointer;
         }
 
+        /* Table and Type Selection Styles */
+        .select-field {
+            padding: 12px 18px;
+            font-size: 1.1em;
+            background: rgba(228, 211, 193, 0.7);
+            border: 2px solid #aa5825;
+            border-radius: 10px;
+            color: #aa5825;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+            width: 200px;
+        }
+
+        .select-field:focus {
+            border-color: #d89b6e;
+            box-shadow: 0 0 15px rgba(216, 155, 110, 0.5);
+            transform: scale(1.02);
+        }
+
         button[type="submit"] {
-            padding: 12px 30px; /* Reduced padding */
+            padding: 12px 30px;
             background: linear-gradient(45deg, #e4d3c1, #d89b6e);
             color: #aa5825;
             border: none;
             border-radius: 30px;
-            font-size: 1.1em; /* Reduced size */
+            font-size: 1.1em;
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 5px 20px rgba(170, 88, 37, 0.3);
@@ -196,30 +215,30 @@
         .success {
             color: #aa5825;
             background: rgba(170, 88, 37, 0.2);
-            padding: 12px; /* Reduced padding */
+            padding: 12px;
             border-radius: 10px;
             text-align: center;
             margin-bottom: 15px;
             box-shadow: 0 5px 15px rgba(170, 88, 37, 0.2);
-            font-size: 0.9em; /* Reduced size */
+            font-size: 0.9em;
         }
 
         .error {
             color: #d89b6e;
             background: rgba(216, 155, 110, 0.2);
-            padding: 12px; /* Reduced padding */
+            padding: 12px;
             border-radius: 10px;
             text-align: center;
             margin-bottom: 15px;
             box-shadow: 0 5px 15px rgba(216, 155, 110, 0.2);
-            font-size: 0.9em; /* Reduced size */
+            font-size: 0.9em;
         }
 
         .back-link {
             display: block;
             text-align: center;
-            margin-top: 20px; /* Reduced margin */
-            font-size: 1em; /* Reduced size */
+            margin-top: 20px;
+            font-size: 1em;
             color: #aa5825;
             transition: color 0.3s ease, transform 0.3s ease;
         }
@@ -232,18 +251,18 @@
         /* Mobile-Specific Adjustments */
         @media (max-width: 768px) {
             .order-container {
-                margin: 20px 10px; /* Reduced margin */
+                margin: 20px 10px;
                 padding: 15px;
-                max-width: 100%; /* Full width */
+                max-width: 100%;
             }
             h1 {
-                font-size: 1.8em; /* Smaller header */
+                font-size: 1.8em;
             }
             p {
                 font-size: 1em;
             }
             .items-grid {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Smaller items */
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 10px;
                 padding: 10px;
             }
@@ -251,7 +270,7 @@
                 padding: 8px;
             }
             .item-card img {
-                max-height: 80px; /* Smaller images */
+                max-height: 80px;
             }
             .item-card h3 {
                 font-size: 0.9em;
@@ -262,6 +281,11 @@
             .item-card input[type="checkbox"] {
                 width: 16px;
                 height: 16px;
+            }
+            .select-field {
+                width: 150px;
+                padding: 10px;
+                font-size: 1em;
             }
             button[type="submit"] {
                 padding: 10px 25px;
@@ -277,7 +301,6 @@
             }
         }
 
-        /* Extra small screens (e.g., older phones) */
         @media (max-width: 480px) {
             .order-container {
                 margin: 10px 5px;
@@ -290,7 +313,7 @@
                 font-size: 0.9em;
             }
             .items-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Even smaller items */
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
                 gap: 8px;
             }
             .item-card {
@@ -304,6 +327,11 @@
             }
             .item-card p {
                 font-size: 0.75em;
+            }
+            .select-field {
+                width: 120px;
+                padding: 8px;
+                font-size: 0.9em;
             }
             button[type="submit"] {
                 padding: 8px 20px;
@@ -325,6 +353,18 @@
             <p>Hello, {{ user.username }}! <a href="{% url 'cafe:logout' %}">Logout</a></p>
             <form method="POST" id="order-form" action="{% url 'cafe:place_order' %}">
                 {% csrf_token %}
+                <select name="table_number" class="select-field" required>
+                    <option value="" disabled selected>Select Table Number</option>
+                    {% for table in tables %}
+                        <option value="{{ table.number }}">Table {{ table.number }}</option>
+                    {% endfor %}
+                </select>
+                <select name="item_type" class="select-field" onchange="this.form.submit()">
+                    <option value="" {% if not selected_type %}selected{% endif %}>All Items</option>
+                    {% for type_value, type_name in item_types %}
+                        <option value="{{ type_value }}" {% if selected_type == type_value %}selected{% endif %}>{{ type_name }}</option>
+                    {% endfor %}
+                </select>
                 <div class="items-grid">
                     {% for item in items %}
                         <div class="item-card">

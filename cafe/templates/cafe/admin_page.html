@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added for mobile responsiveness -->
     <title>Admin Panel</title>
     <style>
         /* Reset and Global Styles */
@@ -137,6 +138,25 @@
             transform: scale(1.02);
         }
 
+        /* Select Field Styles for Item Type */
+        .select-field {
+            padding: 12px 18px;
+            font-size: 1.1em;
+            background: rgba(228, 211, 193, 0.7);
+            border: 2px solid #aa5825;
+            border-radius: 10px;
+            color: #aa5825;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+            width: 200px;
+        }
+
+        .select-field:focus {
+            border-color: #d89b6e;
+            box-shadow: 0 0 15px rgba(216, 155, 110, 0.5);
+            transform: scale(1.02);
+        }
+
         button[type="submit"] {
             padding: 12px 25px;
             background: linear-gradient(45deg, #e4d3c1, #d89b6e);
@@ -245,6 +265,80 @@
             transform: scale(1.1);
             text-shadow: 0 0 10px rgba(216, 155, 110, 0.5);
         }
+
+        /* Mobile-Specific Adjustments */
+        @media (max-width: 768px) {
+            .admin-container {
+                margin: 20px 10px;
+                padding: 20px;
+                max-width: 100%;
+            }
+            h1 {
+                font-size: 2.5em;
+            }
+            .section {
+                padding: 15px;
+                margin-bottom: 30px;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            form {
+                gap: 10px;
+            }
+            input[type="number"], input[type="text"], input[type="file"], .select-field {
+                width: 150px;
+                padding: 10px;
+                font-size: 1em;
+            }
+            button[type="submit"] {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+            li {
+                padding: 10px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .edit-btn, .delete-btn {
+                padding: 6px 12px;
+                font-size: 0.85em;
+            }
+            .back-link {
+                font-size: 1.1em;
+                margin-top: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-container {
+                margin: 10px 5px;
+                padding: 15px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            h2 {
+                font-size: 1.2em;
+            }
+            input[type="number"], input[type="text"], input[type="file"], .select-field {
+                width: 120px;
+                padding: 8px;
+                font-size: 0.9em;
+            }
+            button[type="submit"] {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+            li {
+                padding: 8px 10px;
+            }
+            .edit-btn, .delete-btn {
+                padding: 5px 10px;
+                font-size: 0.8em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -303,18 +397,23 @@
                 {% csrf_token %}
                 <input type="text" name="name" placeholder="Item Name" required>
                 <input type="number" name="price" step="0.01" placeholder="Price" required>
+                <select name="item_type" class="select-field" required>
+                    {% for type_value, type_name in item_types %}
+                        <option value="{{ type_value }}">{{ type_name }}</option>
+                    {% endfor %}
+                </select>
                 <input type="file" name="image" accept="image/*">
                 <button type="submit">Add Item</button>
             </form>
             <ul>
                 {% for item in items %}
                     <li>
-                        {{ item.name }} - ${{ item.price }} - {{ item.is_available|yesno:"Available,Out of Stock" }}
+                        {{ item.name }} - ${{ item.price }} - {{ item.get_item_type_display }} - {{ item.is_available|yesno:"Available,Out of Stock" }}
                         {% if item.image %}
                             <img src="{{ item.image.url }}" alt="{{ item.name }}" style="max-height: 50px; margin-left: 10px;">
                         {% endif %}
                         <div>
-                            <button class="edit-btn" data-id="{{ item.id }}" data-name="{{ item.name }}" data-price="{{ item.price }}" data-available="{{ item.is_available }}">Edit</button>
+                            <button class="edit-btn" data-id="{{ item.id }}" data-name="{{ item.name }}" data-price="{{ item.price }}" data-type="{{ item.item_type }}" data-available="{{ item.is_available }}">Edit</button>
                             <button class="delete-btn" data-id="{{ item.id }}">Delete</button>
                         </div>
                     </li>
@@ -344,7 +443,7 @@
             <h2>Orders</h2>
             <ul>
                 {% for order in orders %}
-                    <li>{{ order.user.username }} - {{ order.created_at }} - {{ order.status }}</li>
+                    <li>{{ order.user.username }} - Table {{ order.table.number|default:"None" }} - {{ order.created_at }} - {{ order.status }}</li>
                 {% endfor %}
             </ul>
         </div>
@@ -405,18 +504,20 @@
                 } else if (type === 'item') {
                     const name = this.getAttribute('data-name');
                     const price = this.getAttribute('data-price');
+                    const itemType = this.getAttribute('data-type');
                     const isAvailable = this.getAttribute('data-available') === 'True';
                     const newName = prompt('Enter new item name:', name);
                     const newPrice = prompt('Enter new price:', price);
+                    const newType = prompt('Enter new item type (e.g., dessert, coffee, smoothie):', itemType);
                     const newAvailable = confirm('Is this item available? (OK for Yes, Cancel for No)');
-                    if (newName !== null && newPrice !== null) {
+                    if (newName !== null && newPrice !== null && newType !== null) {
                         fetch(`/cafe/admin/edit_item/${id}/`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
                                 'X-CSRFToken': getCookie('csrftoken')
                             },
-                            body: `name=${encodeURIComponent(newName)}&price=${encodeURIComponent(newPrice)}&is_available=${newAvailable}`
+                            body: `name=${encodeURIComponent(newName)}&price=${encodeURIComponent(newPrice)}&item_type=${encodeURIComponent(newType)}&is_available=${newAvailable}`
                         }).then(response => {
                             if (response.ok) {
                                 location.reload();

@@ -21,13 +21,12 @@ class RoomAdmin(admin.ModelAdmin):
 # Item Admin
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'is_available', 'image_preview')  # Added image_preview
-    list_filter = ('is_available',)
+    list_display = ('name', 'price', 'item_type', 'is_available', 'image_preview')  # Added item_type
+    list_filter = ('is_available', 'item_type')  # Added item_type filter
     search_fields = ('name',)
     ordering = ('name',)
-    fields = ('name', 'price', 'is_available', 'image')  # Fields shown in detail view
+    fields = ('name', 'price', 'item_type', 'is_available', 'image')  # Added item_type to fields
 
-    # Custom method to display image preview in list view
     def image_preview(self, obj):
         if obj.image:
             return format_html('<img src="{}" style="max-height: 50px; max-width: 50px;" />', obj.image.url)
@@ -52,14 +51,13 @@ class RoomReservationAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
     date_hierarchy = 'date'
 
-# Order Admin with Inline OrderItems
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    extra = 1  # Number of empty rows to display
+    extra = 1
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('user', 'created_at', 'status', 'total_items')
+    list_display = ('user', 'table_number', 'created_at', 'status', 'total_items')  # Added table_number
     list_filter = ('status', 'created_at')
     search_fields = ('user__username',)
     ordering = ('-created_at',)
@@ -70,6 +68,8 @@ class OrderAdmin(admin.ModelAdmin):
         return obj.items.count()
     total_items.short_description = 'Total Items'
 
+    def table_number(self, obj):
+        return obj.table.number if obj.table else "No Table"  # Display table number
 # OrderItem Admin (optional standalone registration)
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
