@@ -433,11 +433,12 @@
     </nav>
     <section id="home" class="hero">
         <h1>Welcome to Rokna Cafe</h1>
-        <p class="description">Dive into a fusion of cosmic coffee vibes and electrifying gaming thrills.</p>
+        <p class="description">Experience the perfect blend of great coffee, delicious treats, and immersive gaming.</p>
         <a href="#menu" class="cta-button">Explore Our Menu</a>
     </section>
+    
     <section id="menu" class="menu">
-        <h2>Our Cosmic Menu</h2>
+        <h2>Our Menu</h2>
         <div class="carousel">
             <button class="carousel-arrow left-arrow">←</button>
             <div class="carousel-track">
@@ -449,31 +450,31 @@
         </div>
     </section>
     <section id="services" class="services">
-        <h2>Our Cosmic Services</h2>
+        <h2>Our Services</h2>
         <div class="service-grid">
             <div class="service-card">
                 <h3>Table Reservation</h3>
-                <p>Claim your portal to coffee bliss.</p>
+                <p>Secure your perfect spot and enjoy a cozy café experience.</p>
                 {% if user.is_authenticated %}<a href="{% url 'cafe:reserve_table' %}" class="service-link">Reserve Now</a>{% endif %}
             </div>
             <div class="service-card">
                 <h3>PlayStation Room</h3>
-                <p>Enter a gaming galaxy.</p>
+                <p>Dive into the ultimate gaming adventure in a private space.</p>
                 {% if user.is_authenticated %}<a href="{% url 'cafe:reserve_ps_room' %}" class="service-link">Book Now</a>{% endif %}
             </div>
             <div class="service-card">
                 <h3>In-Cafe Ordering</h3>
-                <p>Summon cosmic flavors.</p>
+                <p>Enjoy your favorite drinks and treats delivered right to your table.</p>
                 {% if user.is_authenticated %}<a href="{% url 'cafe:place_order' %}" class="service-link">Order Now</a>{% endif %}
             </div>
         </div>
     </section>
-    <section id="about" class="about">
+        <section id="about" class="about">
         <h2>About Rokna Cafe</h2>
         <div class="about-content">
-            <p>Founded in the heart of the Coffee Nebula, Rokna Cafe blends the art of coffee-making with a passion for gaming. Our mission is to create a space where caffeine and controllers collide, offering a unique experience for every visitor.</p>
-            <p>Join us for a cup of cosmic brew and a journey through the stars!</p>
-        </div>
+            <p>Rokna Cafe is not just a regular cafe! We bring together the love of coffee and gaming in one place. Here, you’ll find all your favorite drinks and desserts, along with PlayStation and cozy rooms for watching movies and enjoying time with friends.</p>
+            <p>Come and experience something different, and enjoy an atmosphere full of excitement and relaxation at Rokna Cafe!</p>
+        </div>        
     </section>
     <section id="feedback" class="feedback">
         <h2>Share Your Cosmic Thoughts</h2>
@@ -485,7 +486,7 @@
         </form>
     </section>
     <section id="testimonials" class="testimonials">
-        <h2>Voices from the Cosmos</h2>
+        <h2>What Our Visitors Say</h2>
         <div class="testimonial-grid">
             {% for testimonial in testimonials %}
                 <div class="testimonial-card">
@@ -493,10 +494,10 @@
                     <span class="author">— {{ testimonial.author }}</span>
                 </div>
             {% empty %}
-                <p>No testimonials yet. Be the first to share your thoughts!</p>
+                <p>No reviews yet. Share your experience and be the first to leave a testimonial!</p>
             {% endfor %}
         </div>
-    </section>
+    </section>    
     <section id="contact" class="contact">
         <h2>Contact Us</h2>
         <div class="contact-info">
