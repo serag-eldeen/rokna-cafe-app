@@ -284,11 +284,19 @@ def admin_page(request):
     context = {
         'tables': Table.objects.all(),
         'rooms': Room.objects.all(),
-        'items': Item.objects.all(),
-        'item_types': ITEM_TYPES,
         'selected_date': selected_date,
     }
     return render(request, 'cafe/admin_page.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def items_page(request):
+    context = {
+        'items': Item.objects.all(),
+        'item_types': ITEM_TYPES,
+    }
+    return render(request, 'cafe/items_page.html', context)
+
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)

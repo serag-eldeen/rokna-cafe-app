@@ -4,9 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <title>Items Management</title>
     <style>
-        /* Same styles as before, unchanged */
         * {
             margin: 0;
             padding: 0;
@@ -60,7 +59,7 @@
             50% { transform: translate(50vw, 60vh) scale(1.4); opacity: 0.8; }
         }
 
-        .admin-container {
+        .items-container {
             max-width: 1100px;
             margin: 80px auto;
             padding: 40px;
@@ -72,7 +71,7 @@
             border: 3px solid rgba(170, 88, 37, 0.5);
         }
 
-        .admin-container:hover {
+        .items-container:hover {
             transform: translateY(-10px);
             box-shadow: 0 18px 60px rgba(170, 88, 37, 0.4), 0 0 90px rgba(216, 155, 110, 0.3);
         }
@@ -89,33 +88,6 @@
         @keyframes glow {
             0%, 100% { text-shadow: 0 0 20px rgba(170, 88, 37, 0.6), 0 0 30px rgba(228, 211, 193, 0.4); }
             50% { text-shadow: 0 0 30px rgba(170, 88, 37, 0.8), 0 0 40px rgba(228, 211, 193, 0.6); }
-        }
-
-        .date-filter {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .date-filter label {
-            font-size: 1.2em;
-            color: #aa5825;
-            margin-right: 10px;
-        }
-
-        .date-filter input[type="date"] {
-            padding: 10px;
-            font-size: 1.1em;
-            background: rgba(228, 211, 193, 0.7);
-            border: 2px solid #aa5825;
-            border-radius: 10px;
-            color: #aa5825;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .date-filter input[type="date"]:focus {
-            border-color: #d89b6e;
-            box-shadow: 0 0 15px rgba(216, 155, 110, 0.5);
         }
 
         .section {
@@ -147,7 +119,7 @@
             justify-content: center;
         }
 
-        input[type="number"] {
+        input[type="text"], input[type="number"], input[type="file"] {
             padding: 12px 18px;
             font-size: 1.1em;
             background: rgba(228, 211, 193, 0.7);
@@ -159,13 +131,31 @@
             width: 200px;
         }
 
-        input[type="number"]:focus {
+        input[type="text"]:focus, input[type="number"]:focus, input[type="file"]:focus {
             border-color: #d89b6e;
             box-shadow: 0 0 15px rgba(216, 155, 110, 0.5);
             transform: scale(1.02);
         }
 
-        button[type="submit"], .view-orders-btn, .view-reservations-btn, .view-items-btn {
+        select {
+            padding: 12px 18px;
+            font-size: 1.1em;
+            background: rgba(228, 211, 193, 0.7);
+            border: 2px solid #aa5825;
+            border-radius: 10px;
+            color: #aa5825;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+            width: 200px;
+        }
+
+        select:focus {
+            border-color: #d89b6e;
+            box-shadow: 0 0 15px rgba(216, 155, 110, 0.5);
+            transform: scale(1.02);
+        }
+
+        button[type="submit"] {
             padding: 12px 25px;
             background: linear-gradient(45deg, #e4d3c1, #d89b6e);
             color: #aa5825;
@@ -176,12 +166,9 @@
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(170, 88, 37, 0.2);
             transition: transform 0.4s ease, background 0.4s ease, color 0.4s ease, box-shadow 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            margin: 10px;
         }
 
-        button[type="submit"]:hover, .view-orders-btn:hover, .view-reservations-btn:hover, .view-items-btn:hover {
+        button[type="submit"]:hover {
             transform: translateY(-5px) scale(1.05);
             background: linear-gradient(45deg, #d89b6e, #aa5825);
             color: #e4d3c1;
@@ -196,19 +183,28 @@
         li {
             padding: 15px 20px;
             margin: 10px 0;
-            background: rgba(228, 211, 193, 0.8);
+            background: rgba(255, 245, 230, 0.9);
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(170, 88, 37, 0.15);
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            border-left: 5px solid #aa5825;
+            animation: slideInFromRight 0.5s ease-out;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         li:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(216, 155, 110, 0.3);
             background: rgba(216, 155, 110, 0.3);
+        }
+
+        @keyframes slideInFromRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
         .edit-btn, .delete-btn {
@@ -278,17 +274,13 @@
         }
 
         @media (max-width: 768px) {
-            .admin-container {
+            .items-container {
                 margin: 20px 10px;
                 padding: 20px;
                 max-width: 100%;
             }
             h1 {
                 font-size: 2.5em;
-            }
-            .date-filter input[type="date"] {
-                width: 150px;
-                padding: 8px;
             }
             .section {
                 padding: 15px;
@@ -300,12 +292,12 @@
             form {
                 gap: 10px;
             }
-            input[type="number"] {
+            input[type="text"], input[type="number"], input[type="file"], select {
                 width: 150px;
                 padding: 10px;
                 font-size: 1em;
             }
-            button[type="submit"], .view-orders-btn, .view-reservations-btn, .view-items-btn {
+            button[type="submit"] {
                 padding: 10px 20px;
                 font-size: 1em;
             }
@@ -326,26 +318,22 @@
         }
 
         @media (max-width: 480px) {
-            .admin-container {
+            .items-container {
                 margin: 10px 5px;
                 padding: 15px;
             }
             h1 {
                 font-size: 2em;
             }
-            .date-filter input[type="date"] {
-                width: 120px;
-                padding: 6px;
-            }
             h2 {
                 font-size: 1.2em;
             }
-            input[type="number"] {
+            input[type="text"], input[type="number"], input[type="file"], select {
                 width: 120px;
                 padding: 8px;
                 font-size: 0.9em;
             }
-            button[type="submit"], .view-orders-btn, .view-reservations-btn, .view-items-btn {
+            button[type="submit"] {
                 padding: 8px 15px;
                 font-size: 0.9em;
             }
@@ -360,12 +348,8 @@
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <h1>Admin Panel</h1>
-        <div class="date-filter">
-            <label for="date-picker">Select Date:</label>
-            <input type="date" id="date-picker" value="{{ selected_date|date:'Y-m-d' }}">
-        </div>
+    <div class="items-container">
+        <h1>Items Management</h1>
         {% if message %}
             <p class="success">{{ message }}</p>
         {% endif %}
@@ -374,50 +358,36 @@
         {% endif %}
 
         <div class="section">
-            <h2>Manage Tables</h2>
-            <form id="add-table-form" method="POST" action="{% url 'cafe:add_table' %}">
+            <h2>Manage Items</h2>
+            <form id="add-item-form" method="POST" action="{% url 'cafe:add_item' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <input type="number" name="number" placeholder="Table Number" required>
-                <button type="submit">Add Table</button>
+                <input type="text" name="name" placeholder="Item Name" required>
+                <input type="number" name="price" step="0.01" placeholder="Price" required>
+                <select name="item_type" required>
+                    {% for type_value, type_name in item_types %}
+                        <option value="{{ type_value }}">{{ type_name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="file" name="image" accept="image/*">
+                <button type="submit">Add Item</button>
             </form>
-            <ul id="tables-list">
-                {% for table in tables %}
-                    <li>
-                        Table {{ table.number }} - {{ table.is_available|yesno:"Available,Reserved" }}
+            <ul id="items-list">
+                {% for item in items %}
+                    <li data-item-id="{{ item.id }}">
+                        {{ item.name }} - ${{ item.price }} - {{ item.get_item_type_display }} - {{ item.is_available|yesno:"Available,Out of Stock" }}
+                        {% if item.image %}
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}" style="max-height: 50px; margin-left: 10px;">
+                        {% endif %}
                         <div>
-                            <button class="edit-btn" data-id="{{ table.id }}" data-number="{{ table.number }}" data-available="{{ table.is_available }}">Edit</button>
-                            <button class="delete-btn" data-id="{{ table.id }}">Delete</button>
+                            <button class="edit-btn" data-id="{{ item.id }}" data-name="{{ item.name }}" data-price="{{ item.price }}" data-type="{{ item.item_type }}" data-available="{{ item.is_available }}">Edit</button>
+                            <button class="delete-btn" data-id="{{ item.id }}">Delete</button>
                         </div>
                     </li>
                 {% endfor %}
             </ul>
         </div>
 
-        <div class="section">
-            <h2>Manage Rooms</h2>
-            <form id="add-room-form" method="POST" action="{% url 'cafe:add_room' %}">
-                {% csrf_token %}
-                <input type="number" name="number" placeholder="Room Number" required>
-                <button type="submit">Add Room</button>
-            </form>
-            <ul id="rooms-list">
-                {% for room in rooms %}
-                    <li>
-                        Room {{ room.number }} - {{ room.is_available|yesno:"Available,Reserved" }}
-                        <div>
-                            <button class="edit-btn" data-id="{{ room.id }}" data-number="{{ room.number }}" data-available="{{ room.is_available }}">Edit</button>
-                            <button class="delete-btn" data-id="{{ room.id }}">Delete</button>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <a href="{% url 'cafe:items_page' %}" class="view-items-btn">View Items</a>
-        <a href="{% url 'cafe:room_reservations_page' %}" class="view-reservations-btn">View Room Reservations</a>
-        <a href="{% url 'cafe:table_reservations_page' %}" class="view-reservations-btn">View Table Reservations</a>
-        <a href="{% url 'cafe:orders_page' %}" class="view-orders-btn">View Orders</a>
-        <a href="{% url 'cafe:home' %}" class="back-link">Back</a>
+        <a href="{% url 'cafe:admin_page' %}" class="back-link">Back to Admin Panel</a>
     </div>
 
     <script>
@@ -425,50 +395,29 @@
         document.querySelectorAll('.edit-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
-                const type = this.closest('.section').querySelector('h2').textContent.includes('Tables') ? 'table' : 'room';
-
-                if (type === 'table') {
-                    const number = this.getAttribute('data-number');
-                    const isAvailable = this.getAttribute('data-available') === 'True';
-                    const newNumber = prompt('Enter new table number:', number);
-                    const newAvailable = confirm('Is this table available? (OK for Yes, Cancel for No)');
-                    if (newNumber !== null) {
-                        fetch(`/cafe/admin/edit_table/${id}/`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: `number=${encodeURIComponent(newNumber)}&is_available=${newAvailable}`
-                        }).then(response => {
-                            if (response.ok) {
-                                location.reload();
-                            } else {
-                                alert('Failed to update table');
-                            }
-                        });
-                    }
-                } else if (type === 'room') {
-                    const number = this.getAttribute('data-number');
-                    const isAvailable = this.getAttribute('data-available') === 'True';
-                    const newNumber = prompt('Enter new room number:', number);
-                    const newAvailable = confirm('Is this room available? (OK for Yes, Cancel for No)');
-                    if (newNumber !== null) {
-                        fetch(`/cafe/admin/edit_room/${id}/`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: `number=${encodeURIComponent(newNumber)}&is_available=${newAvailable}`
-                        }).then(response => {
-                            if (response.ok) {
-                                location.reload();
-                            } else {
-                                alert('Failed to update room');
-                            }
-                        });
-                    }
+                const name = this.getAttribute('data-name');
+                const price = this.getAttribute('data-price');
+                const itemType = this.getAttribute('data-type');
+                const isAvailable = this.getAttribute('data-available') === 'True';
+                const newName = prompt('Enter new item name:', name);
+                const newPrice = prompt('Enter new price:', price);
+                const newType = prompt('Enter new item type (e.g., dessert, coffee, smoothie):', itemType);
+                const newAvailable = confirm('Is this item available? (OK for Yes, Cancel for No)');
+                if (newName !== null && newPrice !== null && newType !== null) {
+                    fetch(`/cafe/admin/edit_item/${id}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: `name=${encodeURIComponent(newName)}&price=${encodeURIComponent(newPrice)}&item_type=${encodeURIComponent(newType)}&is_available=${newAvailable}`
+                    }).then(response => {
+                        if (response.ok) {
+                            location.reload();
+                        } else {
+                            alert('Failed to update item');
+                        }
+                    });
                 }
             });
         });
@@ -477,11 +426,8 @@
         document.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
-                const type = this.closest('.section').querySelector('h2').textContent.includes('Tables') ? 'table' : 'room';
-
-                if (confirm('Are you sure you want to delete this?')) {
-                    const url = type === 'table' ? `/cafe/admin/delete_table/${id}/` : `/cafe/admin/delete_room/${id}/`;
-                    fetch(url, {
+                if (confirm('Are you sure you want to delete this item?')) {
+                    fetch(`/cafe/admin/delete_item/${id}/`, {
                         method: 'POST',
                         headers: {
                             'X-CSRFToken': getCookie('csrftoken')
@@ -490,7 +436,7 @@
                         if (response.ok) {
                             location.reload();
                         } else {
-                            alert('Failed to delete');
+                            alert('Failed to delete item');
                         }
                     });
                 }
