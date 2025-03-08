@@ -53,133 +53,108 @@ def logout(request):
 # Reserve Table View
 @login_required
 def reserve_table(request):
+    tables = Table.objects.all()
+    context = {'tables': tables}
+
     if request.method == 'POST':
-        date = request.POST.get('date')
-        start_time = request.POST.get('start_time')
-        duration = int(request.POST.get('duration'))
         table_number = request.POST.get('table_number')
+        date_str = request.POST.get('date')
+        start_time_str = request.POST.get('start_time')
+        duration = int(request.POST.get('duration'))
 
         try:
-            table = Table.objects.get(number=table_number)
-            # Parse start time and calculate end time
-            start_datetime = datetime.strptime(f"{date} {start_time}", "%Y-%m-%d %H:%M")
+            # Parse date and time
+            reservation_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            start_time = datetime.strptime(start_time_str, '%H:%M').time()
+            start_datetime = datetime.combine(reservation_date, start_time)
             end_datetime = start_datetime + timedelta(minutes=duration)
 
-            # Check for overlapping reservations
-            existing_reservations = TableReservation.objects.filter(table=table, date=date)
-            for reservation in existing_reservations:
-                res_start = datetime.strptime(f"{reservation.date} {reservation.start_time}", "%Y-%m-%d %H:%M")
-                res_end = res_start + timedelta(minutes=reservation.duration)
-                if (start_datetime < res_end and end_datetime > res_start):
-                    return render(request, 'cafe/reserve_table.html', {
-                        'tables': Table.objects.all(),
-                        'all_tables': Table.objects.all(),
-                        'reservations': TableReservation.objects.all(),
-                        'error': f'Table {table.number} is booked from {res_start.strftime("%H:%M")} to {res_end.strftime("%H:%M")} on {date}'
-                    })
+            # Get the table
+            table = Table.objects.get(number=table_number)
 
-            # No conflict, create new reservation
+            # Check for overlapping reservations
+            existing_reservations = TableReservation.objects.filter(
+                table=table,
+                date=reservation_date
+            )
+
+            for res in existing_reservations:
+                res_start = datetime.combine(res.date, res.start_time)
+                res_end = res_start + timedelta(minutes=res.duration)
+                if (start_datetime < res_end) and (end_datetime > res_start):
+                    context['error'] = f"Table {table.number} is already reserved from {res.start_time.strftime('%H:%M')} to {res_end.strftime('%H:%M')} on {res.date}."
+                    return render(request, 'cafe/reserve_table.html', context)
+
+            # If no conflict, save the reservation
             reservation = TableReservation(
                 user=request.user,
                 table=table,
-                date=date,
+                date=reservation_date,
                 start_time=start_time,
                 duration=duration
             )
             reservation.save()
-            return render(request, 'cafe/reserve_table.html', {
-                'tables': Table.objects.all(),
-                'all_tables': Table.objects.all(),
-                'reservations': TableReservation.objects.all(),
-                'message': 'Table reserved successfully!'
-            })
-        except Table.DoesNotExist:
-            return render(request, 'cafe/reserve_table.html', {
-                'tables': Table.objects.all(),
-                'all_tables': Table.objects.all(),
-                'reservations': TableReservation.objects.all(),
-                'error': 'Invalid table number'
-            })
-        except ValueError:
-            return render(request, 'cafe/reserve_table.html', {
-                'tables': Table.objects.all(),
-                'all_tables': Table.objects.all(),
-                'reservations': TableReservation.objects.all(),
-                'error': 'Invalid date or time format'
-            })
+            context['message'] = f"Table {table.number} reserved successfully for {duration} minutes on {reservation_date} at {start_time.strftime('%H:%M')}."
 
-    tables = Table.objects.all()
-    all_tables = Table.objects.all()
-    reservations = TableReservation.objects.all()
-    return render(request, 'cafe/reserve_table.html', {
-        'tables': tables,
-        'all_tables': all_tables,
-        'reservations': reservations
-    })
+        except Table.DoesNotExist:
+            context['error'] = "Selected table does not exist."
+        except ValueError as e:
+            context['error'] = "Invalid date or time format."
+
+    return render(request, 'cafe/reserve_table.html', context)
 
 # Reserve PS Room View
 @login_required
 def reserve_ps_room(request):
+    rooms = Room.objects.all()
+    context = {'rooms': rooms}
+
     if request.method == 'POST':
-        date = request.POST.get('date')
-        start_time = request.POST.get('start_time')
-        duration = int(request.POST.get('duration'))
         room_number = request.POST.get('room_number')
+        date_str = request.POST.get('date')
+        start_time_str = request.POST.get('start_time')
+        duration = int(request.POST.get('duration'))
 
         try:
-            room = Room.objects.get(number=room_number)
-            start_datetime = datetime.strptime(f"{date} {start_time}", "%Y-%m-%d %H:%M")
+            # Parse date and time
+            reservation_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            start_time = datetime.strptime(start_time_str, '%H:%M').time()
+            start_datetime = datetime.combine(reservation_date, start_time)
             end_datetime = start_datetime + timedelta(minutes=duration)
 
-            existing_reservations = RoomReservation.objects.filter(room=room, date=date)
-            for reservation in existing_reservations:
-                res_start = datetime.strptime(f"{reservation.date} {reservation.start_time}", "%Y-%m-%d %H:%M")
-                res_end = res_start + timedelta(minutes=reservation.duration)
-                if (start_datetime < res_end and end_datetime > res_start):
-                    return render(request, 'cafe/reserve_ps_room.html', {
-                        'rooms': Room.objects.all(),
-                        'all_rooms': Room.objects.all(),
-                        'reservations': RoomReservation.objects.all(),
-                        'error': f'Room {room.number} is booked from {res_start.strftime("%H:%M")} to {res_end.strftime("%H:%M")} on {date}'
-                    })
+            # Get the room
+            room = Room.objects.get(number=room_number)
 
+            # Check for overlapping reservations
+            existing_reservations = RoomReservation.objects.filter(
+                room=room,
+                date=reservation_date
+            )
+
+            for res in existing_reservations:
+                res_start = datetime.combine(res.date, res.start_time)
+                res_end = res_start + timedelta(minutes=res.duration)
+                if (start_datetime < res_end) and (end_datetime > res_start):
+                    context['error'] = f"Room {room.number} is already reserved from {res.start_time.strftime('%H:%M')} to {res_end.strftime('%H:%M')} on {res.date}."
+                    return render(request, 'cafe/reserve_ps_room.html', context)
+
+            # If no conflict, save the reservation
             reservation = RoomReservation(
                 user=request.user,
                 room=room,
-                date=date,
+                date=reservation_date,
                 start_time=start_time,
                 duration=duration
             )
             reservation.save()
-            return render(request, 'cafe/reserve_ps_room.html', {
-                'rooms': Room.objects.all(),
-                'all_rooms': Room.objects.all(),
-                'reservations': RoomReservation.objects.all(),
-                'message': 'PS Room reserved successfully!'
-            })
-        except Room.DoesNotExist:
-            return render(request, 'cafe/reserve_ps_room.html', {
-                'rooms': Room.objects.all(),
-                'all_rooms': Room.objects.all(),
-                'reservations': RoomReservation.objects.all(),
-                'error': 'Invalid room number'
-            })
-        except ValueError:
-            return render(request, 'cafe/reserve_ps_room.html', {
-                'rooms': Room.objects.all(),
-                'all_rooms': Room.objects.all(),
-                'reservations': RoomReservation.objects.all(),
-                'error': 'Invalid date or time format'
-            })
+            context['message'] = f"Room {room.number} reserved successfully for {duration} minutes on {reservation_date} at {start_time.strftime('%H:%M')}."
 
-    rooms = Room.objects.all()
-    all_rooms = Room.objects.all()
-    reservations = RoomReservation.objects.all()
-    return render(request, 'cafe/reserve_ps_room.html', {
-        'rooms': rooms,
-        'all_rooms': all_rooms,
-        'reservations': reservations
-    })
+        except Room.DoesNotExist:
+            context['error'] = "Selected room does not exist."
+        except ValueError as e:
+            context['error'] = "Invalid date or time format."
+
+    return render(request, 'cafe/reserve_ps_room.html', context)
 
 @login_required
 def place_order(request):
@@ -343,7 +318,6 @@ def room_reservations_page(request):
     return render(request, 'cafe/room_reservations_page.html', context)
 
 @login_required
-@user_passes_test(lambda u: u.is_staff)
 @csrf_exempt
 def get_room_reservations(request):
     date_str = request.GET.get('date', '')
@@ -361,7 +335,8 @@ def get_room_reservations(request):
                 'user': res.user.username,
                 'room': res.room.number,
                 'date': res.date.strftime('%Y-%m-%d'),
-                'start_time': res.start_time.strftime('%H:%M')
+                'start_time': res.start_time.strftime('%H:%M'),
+                'duration': res.duration  # Add duration here
             } for res in reservations
         ]
     }
@@ -450,7 +425,6 @@ def get_new_orders(request):
     return JsonResponse({'orders': orders_data})
 
 @login_required
-@user_passes_test(lambda u: u.is_staff)
 @csrf_exempt
 def get_table_reservations(request):
     date_str = request.GET.get('date', '')
@@ -468,7 +442,8 @@ def get_table_reservations(request):
                 'user': res.user.username,
                 'table': res.table.number,
                 'date': res.date.strftime('%Y-%m-%d'),
-                'start_time': res.start_time.strftime('%H:%M')
+                'start_time': res.start_time.strftime('%H:%M'),
+                'duration': res.duration  # Add duration here
             } for res in reservations
         ]
     }

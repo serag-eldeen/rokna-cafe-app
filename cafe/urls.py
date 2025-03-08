@@ -28,9 +28,9 @@ urlpatterns = [
     path('submit-feedback/', views.submit_feedback, name='submit_feedback'),
     path('admin/update_order_status/<int:order_id>/', views.update_order_status, name='update_order_status'),
     path('admin/table_reservations/', views.table_reservations_page, name='table_reservations_page'),
-    path('admin/get_table_reservations/', views.get_table_reservations, name='get_table_reservations'),
+    path('get_table_reservations/', views.get_table_reservations, name='get_table_reservations'),
     path('admin/get_new_table_reservations/', views.get_new_table_reservations, name='get_new_table_reservations'),
     path('admin/room_reservations/', views.room_reservations_page, name='room_reservations_page'),
-    path('admin/get_room_reservations/', views.get_room_reservations, name='get_room_reservations'),
+    path('get_room_reservations/', views.get_room_reservations, name='get_room_reservations'),
     path('admin/get_new_room_reservations/', views.get_new_room_reservations, name='get_new_room_reservations'),
 ]

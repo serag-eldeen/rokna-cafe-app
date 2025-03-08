@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta tag -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reserve a PS Room</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
@@ -13,15 +13,15 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'Poppins', sans-serif; /* Consistent with your main page */
-            background: linear-gradient(135deg, #e4d3c1 0%, #d89b6e 100%); /* Match your theme */
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e4d3c1 0%, #d89b6e 100%);
             color: #aa5825;
             line-height: 1.6;
         }
         .reserve-container {
             max-width: 800px;
-            margin: 20px auto; /* Reduced margin for mobile */
-            padding: 15px; /* Reduced padding for mobile */
+            margin: 20px auto;
+            padding: 15px;
             background: #f9f9f9;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -29,7 +29,7 @@
         h1 {
             text-align: center;
             color: #aa5825;
-            font-size: 2em; /* Smaller base size for mobile */
+            font-size: 2em;
         }
         p {
             text-align: center;
@@ -38,17 +38,17 @@
         form {
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Reduced gap for mobile */
-            max-width: 100%; /* Full width on mobile */
+            gap: 10px;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 0 10px; /* Add padding for form edges */
+            padding: 0 10px;
         }
         select, input[type="date"], input[type="time"] {
-            padding: 8px; /* Slightly smaller padding */
+            padding: 8px;
             border: 1px solid #aa5825;
             border-radius: 5px;
             font-size: 1em;
-            width: 100%; /* Full width for touch usability */
+            width: 100%;
         }
         button[type="submit"] {
             padding: 10px;
@@ -63,18 +63,15 @@
         button[type="submit"]:hover {
             background: #d89b6e;
         }
-        .rooms-list {
-            margin-top: 20px; /* Reduced for mobile */
+        .reservations-list {
+            margin-top: 20px;
             padding: 0 10px;
         }
-        .room-item {
-            padding: 8px; /* Smaller padding */
+        .reservation-item {
+            padding: 8px;
             margin: 5px 0;
             border-radius: 5px;
-            font-size: 0.9em; /* Smaller text */
-        }
-        .available {
-            background: #e4d3c1;
+            font-size: 0.9em;
         }
         .reserved {
             background: #d89b6e;
@@ -103,36 +100,40 @@
             margin-bottom: 15px;
             font-size: 0.9em;
         }
+        h2 {
+            color: #aa5825;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
 
-        /* Mobile-Specific Adjustments */
         @media (max-width: 768px) {
             .reserve-container {
-                margin: 10px; /* Less margin on mobile */
+                margin: 10px;
                 padding: 10px;
             }
             h1 {
-                font-size: 1.5em; /* Smaller header */
+                font-size: 1.5em;
             }
             h2 {
                 font-size: 1.2em;
             }
             form {
-                padding: 0 5px; /* Tighter padding */
+                padding: 0 5px;
             }
             select, input[type="date"], input[type="time"] {
-                padding: 6px; /* Smaller input padding */
+                padding: 6px;
                 font-size: 0.9em;
             }
             button[type="submit"] {
                 padding: 8px;
                 font-size: 0.9em;
             }
-            .rooms-list {
+            .reservations-list {
                 margin-top: 15px;
             }
-            .room-item {
+            .reservation-item {
                 padding: 6px;
-                font-size: 0.85em; /* Even smaller text */
+                font-size: 0.85em;
             }
             .back-link {
                 margin-top: 10px;
@@ -140,7 +141,6 @@
             }
         }
 
-        /* Extra small screens (e.g., older phones) */
         @media (max-width: 480px) {
             h1 {
                 font-size: 1.2em;
@@ -152,7 +152,7 @@
                 margin: 5px;
                 padding: 8px;
             }
-            .room-item {
+            .reservation-item {
                 font-size: 0.8em;
             }
         }
@@ -177,40 +177,86 @@
                         <option value="{{ room.number }}">Room {{ room.number }}</option>
                     {% endfor %}
                 </select>
-                <input type="date" name="date" required>
+                <input type="date" name="date" id="reservation-date" required>
                 <input type="time" name="start_time" required>
                 <select name="duration" required>
                     <option value="" disabled selected>Select Duration</option>
                     <option value="30">30 min</option>
                     <option value="60">1 hour</option>
+                    <option value="90">1.5 hour</option>
                     <option value="120">2 hours</option>
+                    <option value="150">2.5 hours</option>
+                    <option value="180">3 hours</option>
+                    <option value="210">3.5 hours</option>
+                    <option value="240">4 hours</option>
                 </select>
                 <button type="submit">Reserve</button>
             </form>
 
-            <div class="rooms-list">
-                <h2>All Rooms</h2>
-                {% for room in all_rooms %}
-                    <div class="room-item {% if room.is_available %}available{% else %}reserved{% endif %}">
-                        Room {{ room.number }} - 
-                        {% if room.is_available %}
-                            Available
-                        {% else %}
-                            Reserved
-                            {% for reservation in reservations %}
-                                {% if reservation.room.id == room.id %}
-                                    ({{ reservation.date }} at {{ reservation.start_time }} for {{ reservation.duration }} min)
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                {% endfor %}
+            <div class="reservations-list" id="reservations-list">
+                <h2>Reservations for Selected Date</h2>
+                <div id="reservations-content">
+                    <!-- Reservations will be dynamically inserted here -->
+                </div>
             </div>
         {% else %}
             <p>Please <a href="{% url 'login' %}">login</a> or <a href="{% url 'cafe:signup' %}">sign up</a> to reserve.</p>
         {% endif %}
         <a href="{% url 'cafe:home' %}" class="back-link">Back</a>
     </div>
-    <script src="{% static 'js/script.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('reservation-date');
+            const reservationsContent = document.getElementById('reservations-content');
+
+            dateInput.addEventListener('change', function() {
+                const selectedDate = this.value;
+                if (selectedDate) {
+                    fetch(`/cafe/get_room_reservations/?date=${selectedDate}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        reservationsContent.innerHTML = ''; // Clear previous content
+                        if (data.room_reservations && data.room_reservations.length > 0) {
+                            data.room_reservations.forEach(res => {
+                                const div = document.createElement('div');
+                                div.className = 'reservation-item reserved';
+                                div.textContent = `Room ${res.room} - Reserved by ${res.user} on ${res.date} at ${res.start_time} for ${res.duration} minutes`;
+                                reservationsContent.appendChild(div);
+                            });
+                        } else {
+                            reservationsContent.innerHTML = '<p class="success">No reservations for this date.</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching reservations:', error);
+                        reservationsContent.innerHTML = '<p class="error">Failed to load reservations.</p>';
+                    });
+                } else {
+                    reservationsContent.innerHTML = '<p>Please select a date.</p>';
+                }
+            });
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
 </body>
 </html>
