@@ -275,18 +275,17 @@ def is_staff(user):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_page(request):
-    date_str = request.GET.get('date', '')
-    try:
-        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
-    except ValueError:
-        selected_date = timezone.now().date()
+    context = {}
+    return render(request, 'cafe/admin_page.html', context)
 
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def tables_rooms_page(request):
     context = {
         'tables': Table.objects.all(),
         'rooms': Room.objects.all(),
-        'selected_date': selected_date,
     }
-    return render(request, 'cafe/admin_page.html', context)
+    return render(request, 'cafe/tables_rooms_page.html', context)
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
