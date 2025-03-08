@@ -9,6 +9,9 @@ from django.utils import timezone
 import os
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.views import View
 
 def home(request):
     if request.method == 'POST':
@@ -25,6 +28,24 @@ def home(request):
         'menu_images': image_files,
         'testimonials': testimonials
     })
+class CustomLoginView(View):
+    template_name = 'cafe/login.html'
+
+    def get(self, request):
+        return render(request, self.template_name)
+
+    def post(self, request):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('cafe:home')  # Redirect to home on success
+        else:
+            # Pass an error flag to the template
+            return render(request, self.template_name, {
+                'error': True
+            })
 def submit_feedback(request):
     if request.method == 'POST':
         author = request.POST.get('author')
@@ -33,6 +54,7 @@ def submit_feedback(request):
             Testimonial.objects.create(author=author, content=content)
         return redirect('cafe:home')
     return redirect('cafe:home')  # Redirect GET requests to home
+
 
 # Signup View (No login required)
 def signup(request):

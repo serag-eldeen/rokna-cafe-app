@@ -6,6 +6,7 @@ app_name = 'cafe'
 urlpatterns = [
     path('', views.home, name='home'),  # Root URL goes to home
     path('signup/', views.signup, name='signup'),
+    path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', views.logout, name='logout'),
     path('reserve_table/', views.reserve_table, name='reserve_table'),
     path('reserve_ps_room/', views.reserve_ps_room, name='reserve_ps_room'),

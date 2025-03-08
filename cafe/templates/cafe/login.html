@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Login - Rokna Cafe</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta tag -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet"> <!-- Added fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -21,7 +21,6 @@
             position: relative;
         }
 
-        /* Particles Container */
         .particles {
             position: fixed;
             top: 0;
@@ -47,13 +46,14 @@
             box-shadow: 0 8px 20px rgba(170, 88, 37, 0.2);
             text-align: center;
             z-index: 1;
+            position: relative;
         }
         h1 {
-            font-family: 'Orbitron', sans-serif; /* Consistent with home.html */
+            font-family: 'Orbitron', sans-serif;
             color: #aa5825;
             font-size: 2em;
             margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(170, 88, 37, 0.3); /* Added subtle shadow */
+            text-shadow: 0 0 10px rgba(170, 88, 37, 0.3);
         }
         form {
             display: flex;
@@ -88,7 +88,7 @@
         }
         button[type="submit"]:hover, .back-button:hover {
             background: #d89b6e;
-            transform: scale(1.05); /* Added subtle scale effect */
+            transform: scale(1.05);
         }
         .back-button {
             margin-top: 15px;
@@ -109,37 +109,53 @@
         a:hover {
             color: #d89b6e;
         }
-        /* Error messages */
-        .errorlist {
-            color: #d89b6e;
-            font-size: 0.9em;
-            margin-bottom: 10px;
-            list-style: none;
+
+        /* Styled Alert */
+        .alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #d89b6e;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(170, 88, 37, 0.3);
+            font-size: 1em;
+            font-family: 'Poppins', sans-serif;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .alert.show {
+            opacity: 1;
         }
 
-        /* Responsive Design for Mobile */
         @media (max-width: 768px) {
             .login-container {
                 padding: 20px;
-                margin: 20px; /* Added margin for edge spacing */
-                max-width: 100%; /* Full width on small screens */
+                margin: 20px;
+                max-width: 100%;
             }
             h1 {
-                font-size: 1.5em; /* Smaller title */
+                font-size: 1.5em;
             }
             input[type="text"], input[type="password"] {
-                padding: 8px; /* Slightly smaller padding */
-                font-size: 0.9em; /* Smaller text */
+                padding: 8px;
+                font-size: 0.9em;
             }
             button[type="submit"], .back-button {
                 padding: 8px;
-                font-size: 1em; /* Smaller button text */
+                font-size: 1em;
             }
             p {
-                font-size: 0.8em; /* Smaller paragraph text */
+                font-size: 0.8em;
             }
-            .errorlist {
-                font-size: 0.8em; /* Smaller error text */
+            .alert {
+                font-size: 0.9em;
+                padding: 10px 20px;
+                width: 90%;
+                max-width: 300px;
             }
         }
     </style>
@@ -150,19 +166,8 @@
         <h1>Login</h1>
         <form method="POST">
             {% csrf_token %}
-            {{ form.as_p }}
-            {% if form.errors %}
-                <ul class="errorlist">
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                    {% for error in form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Login</button>
         </form>
         <p>Don't have an account? <a href="{% url 'cafe:signup' %}">Sign Up</a></p>
@@ -170,7 +175,6 @@
     </div>
 
     <script>
-        // Particle Animation (same as home.html)
         const particlesContainer = document.querySelector('.particles');
         function createParticle() {
             const particle = document.createElement('div');
@@ -187,7 +191,6 @@
         }
         setInterval(createParticle, 300);
 
-        // Float Animation for Particles
         const styleSheet = document.createElement('style');
         styleSheet.textContent = `
             @keyframes float {
