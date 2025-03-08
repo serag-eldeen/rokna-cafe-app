@@ -503,7 +503,7 @@ def add_table(request):
     if request.method == 'POST':
         number = request.POST.get('number')
         if Table.objects.filter(number=number).exists():
-            return render(request, 'cafe/admin_page.html', {
+            return render(request, 'cafe/add_table.html', {
                 'tables': Table.objects.all(),
                 'rooms': Room.objects.all(),
                 'items': Item.objects.all(),
@@ -513,8 +513,8 @@ def add_table(request):
                 'error': 'Table number already exists'
             })
         Table.objects.create(number=number)
-        return redirect('cafe:admin_page')
-    return redirect('cafe:admin_page')
+        return redirect('cafe:tables_rooms_page')
+    return redirect('cafe:tables_rooms_page')
 
 @csrf_exempt
 @login_required
@@ -588,8 +588,8 @@ def add_room(request):
                 'error': 'Room number already exists'
             })
         Room.objects.create(number=number)
-        return redirect('cafe:admin_page')
-    return redirect('cafe:admin_page')
+        return redirect('cafe:tables_rooms_page')
+    return redirect('cafe:tables_rooms_page')
 
 @csrf_exempt
 @login_required
