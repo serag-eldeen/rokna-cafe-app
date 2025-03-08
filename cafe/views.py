@@ -285,47 +285,121 @@ def admin_page(request):
         'tables': Table.objects.all(),
         'rooms': Room.objects.all(),
         'items': Item.objects.all(),
-        'table_reservations': TableReservation.objects.filter(date=selected_date),
-        'room_reservations': RoomReservation.objects.filter(date=selected_date),
-        'orders': Order.objects.filter(created_at__date=selected_date),
         'item_types': ITEM_TYPES,
         'selected_date': selected_date,
     }
     return render(request, 'cafe/admin_page.html', context)
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-@csrf_exempt
-@login_required
-@user_passes_test(lambda u: u.is_staff)
-@csrf_exempt
-def get_data(request):
+def orders_page(request):
     date_str = request.GET.get('date', '')
     try:
         selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
     except ValueError:
         selected_date = timezone.now().date()
 
-    table_reservations = TableReservation.objects.filter(date=selected_date)
-    room_reservations = RoomReservation.objects.filter(date=selected_date)
-    orders = Order.objects.filter(created_at__date=selected_date).order_by('created_at')
+    context = {
+        'orders': Order.objects.filter(created_at__date=selected_date),
+        'selected_date': selected_date,
+    }
+    return render(request, 'cafe/orders_page.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def table_reservations_page(request):
+    date_str = request.GET.get('date', '')
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+    except ValueError:
+        selected_date = timezone.now().date()
+
+    context = {
+        'table_reservations': TableReservation.objects.filter(date=selected_date),
+        'selected_date': selected_date,
+    }
+    return render(request, 'cafe/table_reservations_page.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def room_reservations_page(request):
+    date_str = request.GET.get('date', '')
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+    except ValueError:
+        selected_date = timezone.now().date()
+
+    context = {
+        'room_reservations': RoomReservation.objects.filter(date=selected_date),
+        'selected_date': selected_date,
+    }
+    return render(request, 'cafe/room_reservations_page.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@csrf_exempt
+def get_room_reservations(request):
+    date_str = request.GET.get('date', '')
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+    except ValueError:
+        selected_date = timezone.now().date()
+
+    reservations = RoomReservation.objects.filter(date=selected_date).order_by('start_time')
 
     data = {
-        'table_reservations': [
-            {
-                'user': res.user.username,
-                'table': res.table.number,
-                'date': res.date.strftime('%Y-%m-%d'),
-                'start_time': res.start_time.strftime('%H:%M')
-            } for res in table_reservations
-        ],
         'room_reservations': [
             {
+                'id': res.id,
                 'user': res.user.username,
                 'room': res.room.number,
                 'date': res.date.strftime('%Y-%m-%d'),
                 'start_time': res.start_time.strftime('%H:%M')
-            } for res in room_reservations
-        ],
+            } for res in reservations
+        ]
+    }
+    return JsonResponse(data)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@csrf_exempt
+def get_new_room_reservations(request):
+    last_reservation_id = int(request.GET.get('last_reservation_id', 0))
+    date_str = request.GET.get('date', '')
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+    except ValueError:
+        selected_date = timezone.now().date()
+
+    new_reservations = RoomReservation.objects.filter(
+        id__gt=last_reservation_id,
+        date=selected_date
+    ).order_by('start_time')
+
+    reservations_data = [
+        {
+            'id': res.id,
+            'user': res.user.username,
+            'room': res.room.number,
+            'date': res.date.strftime('%Y-%m-%d'),
+            'start_time': res.start_time.strftime('%H:%M')
+        } for res in new_reservations
+    ]
+    return JsonResponse({'room_reservations': reservations_data})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@csrf_exempt
+def get_orders(request):
+    date_str = request.GET.get('date', '')
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+    except ValueError:
+        selected_date = timezone.now().date()
+
+    orders = Order.objects.filter(created_at__date=selected_date).order_by('created_at')
+
+    data = {
         'orders': [
             {
                 'id': order.id,
@@ -337,7 +411,8 @@ def get_data(request):
             } for order in orders
         ]
     }
-    return JsonResponse(data)    
+    return JsonResponse(data)
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 @csrf_exempt
@@ -370,6 +445,58 @@ def get_new_orders(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 @csrf_exempt
+def get_table_reservations(request):
+    date_str = request.GET.get('date', '')
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+    except ValueError:
+        selected_date = timezone.now().date()
+
+    reservations = TableReservation.objects.filter(date=selected_date).order_by('start_time')
+
+    data = {
+        'table_reservations': [
+            {
+                'id': res.id,
+                'user': res.user.username,
+                'table': res.table.number,
+                'date': res.date.strftime('%Y-%m-%d'),
+                'start_time': res.start_time.strftime('%H:%M')
+            } for res in reservations
+        ]
+    }
+    return JsonResponse(data)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@csrf_exempt
+def get_new_table_reservations(request):
+    last_reservation_id = int(request.GET.get('last_reservation_id', 0))
+    date_str = request.GET.get('date', '')
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+    except ValueError:
+        selected_date = timezone.now().date()
+
+    new_reservations = TableReservation.objects.filter(
+        id__gt=last_reservation_id,
+        date=selected_date
+    ).order_by('start_time')
+
+    reservations_data = [
+        {
+            'id': res.id,
+            'user': res.user.username,
+            'table': res.table.number,
+            'date': res.date.strftime('%Y-%m-%d'),
+            'start_time': res.start_time.strftime('%H:%M')
+        } for res in new_reservations
+    ]
+    return JsonResponse({'table_reservations': reservations_data})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@csrf_exempt
 def update_order_status(request, order_id):
     if request.method == 'POST':
         try:
@@ -386,8 +513,7 @@ def update_order_status(request, order_id):
             return HttpResponse('Order not found', status=404)
         except Exception as e:
             return HttpResponse(f'Error: {str(e)}', status=500)
-    return HttpResponse('Method not allowed', status=405)
-    
+    return HttpResponse('Method not allowed', status=405)   
 @csrf_exempt
 @login_required
 @user_passes_test(is_staff)

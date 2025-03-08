@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
     <style>
-        /* Reset and Global Styles */
+        /* Same styles as before, with .view-reservations-btn updated */
         * {
             margin: 0;
             padding: 0;
@@ -183,7 +183,7 @@
             transform: scale(1.02);
         }
 
-        button[type="submit"] {
+        button[type="submit"], .view-orders-btn, .view-reservations-btn {
             padding: 12px 25px;
             background: linear-gradient(45deg, #e4d3c1, #d89b6e);
             color: #aa5825;
@@ -194,9 +194,12 @@
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(170, 88, 37, 0.2);
             transition: transform 0.4s ease, background 0.4s ease, color 0.4s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
         }
 
-        button[type="submit"]:hover {
+        button[type="submit"]:hover, .view-orders-btn:hover, .view-reservations-btn:hover {
             transform: translateY(-5px) scale(1.05);
             background: linear-gradient(45deg, #d89b6e, #aa5825);
             color: #e4d3c1;
@@ -226,20 +229,7 @@
             background: rgba(216, 155, 110, 0.3);
         }
 
-        #orders-list li {
-            background: rgba(255, 245, 230, 0.9);
-            border-left: 5px solid #aa5825;
-            animation: slideInFromRight 0.5s ease-out;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        @keyframes slideInFromRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .edit-btn, .delete-btn, .status-btn {
+        .edit-btn, .delete-btn {
             padding: 8px 15px;
             font-size: 0.9em;
             background: #e4d3c1;
@@ -250,7 +240,7 @@
             transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .edit-btn:hover, .status-btn:hover {
+        .edit-btn:hover {
             transform: translateY(-3px);
             background: #d89b6e;
             color: #e4d3c1;
@@ -267,23 +257,6 @@
             background: #aa5825;
             color: #e4d3c1;
             box-shadow: 0 5px 15px rgba(170, 88, 37, 0.4);
-        }
-
-        .status-select {
-            padding: 8px 12px;
-            font-size: 0.9em;
-            background: rgba(228, 211, 193, 0.7);
-            border: 2px solid #aa5825;
-            border-radius: 10px;
-            color: #aa5825;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            margin-right: 10px;
-        }
-
-        .status-select:focus {
-            border-color: #d89b6e;
-            box-shadow: 0 0 15px rgba(216, 155, 110, 0.5);
         }
 
         .success {
@@ -350,7 +323,7 @@
                 padding: 10px;
                 font-size: 1em;
             }
-            button[type="submit"] {
+            button[type="submit"], .view-orders-btn, .view-reservations-btn {
                 padding: 10px 20px;
                 font-size: 1em;
             }
@@ -360,13 +333,9 @@
                 align-items: flex-start;
                 gap: 10px;
             }
-            .edit-btn, .delete-btn, .status-btn {
+            .edit-btn, .delete-btn {
                 padding: 6px 12px;
                 font-size: 0.85em;
-            }
-            .status-select {
-                width: 120px;
-                padding: 6px 10px;
             }
             .back-link {
                 font-size: 1.1em;
@@ -394,20 +363,16 @@
                 padding: 8px;
                 font-size: 0.9em;
             }
-            button[type="submit"] {
+            button[type="submit"], .view-orders-btn, .view-reservations-btn {
                 padding: 8px 15px;
                 font-size: 0.9em;
             }
             li {
                 padding: 8px 10px;
             }
-            .edit-btn, .delete-btn, .status-btn {
+            .edit-btn, .delete-btn {
                 padding: 5px 10px;
                 font-size: 0.8em;
-            }
-            .status-select {
-                width: 100px;
-                padding: 5px 8px;
             }
         }
     </style>
@@ -496,49 +461,9 @@
             </ul>
         </div>
 
-        <div class="section">
-            <h2>Table Reservations</h2>
-            <ul id="table-reservations-list">
-                {% for reservation in table_reservations %}
-                    <li>{{ reservation.user.username }} - Table {{ reservation.table.number }} - {{ reservation.date }} {{ reservation.start_time }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2>Room Reservations</h2>
-            <ul id="room-reservations-list">
-                {% for reservation in room_reservations %}
-                    <li>{{ reservation.user.username }} - Room {{ reservation.room.number }} - {{ reservation.date }} {{ reservation.start_time }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2>Orders</h2>
-            <ul id="orders-list">
-                {% for order in orders %}
-                    <li data-order-id="{{ order.id }}">
-                        {{ order.user.username }} - Table {{ order.table.number|default:"None" }} - {{ order.created_at }} - {{ order.status }}
-                        {% with order_items=order.orderitem_set.all %}
-                            {% if order_items %}
-                                (Items: {% for oi in order_items %}{{ oi.item.name }} x{{ oi.quantity }}{% if not forloop.last %}, {% endif %}{% endfor %})
-                            {% endif %}
-                        {% endwith %}
-                        <div>
-                            <select class="status-select" data-order-id="{{ order.id }}">
-                                <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
-                                <option value="Preparing" {% if order.status == 'Preparing' %}selected{% endif %}>Preparing</option>
-                                <option value="Ready" {% if order.status == 'Ready' %}selected{% endif %}>Ready</option>
-                                <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
-                            </select>
-                            <button class="status-btn" data-order-id="{{ order.id }}">Update Status</button>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-
+        <a href="{% url 'cafe:room_reservations_page' %}" class="view-reservations-btn">View Room Reservations</a>
+        <a href="{% url 'cafe:table_reservations_page' %}" class="view-reservations-btn">View Table Reservations</a>
+        <a href="{% url 'cafe:orders_page' %}" class="view-orders-btn">View Orders</a>
         <a href="{% url 'cafe:home' %}" class="back-link">Back</a>
     </div>
 
@@ -647,154 +572,7 @@
             });
         });
 
-        // Date Filter and Real-time Updates
-        const datePicker = document.getElementById('date-picker');
-        let selectedDate = datePicker.value;
-        let lastOrderId = Math.max(0, ...Array.from(document.querySelectorAll('#orders-list li'))
-            .map(li => parseInt(li.getAttribute('data-order-id') || 0)));
-
-        function fetchDataForDate(date) {
-            fetch(`/cafe/admin/get_data/?date=${encodeURIComponent(date)}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                // Update Table Reservations
-                const tableReservationsList = document.getElementById('table-reservations-list');
-                tableReservationsList.innerHTML = data.table_reservations.map(res => 
-                    `<li>${res.user} - Table ${res.table} - ${res.date} ${res.start_time}</li>`
-                ).join('');
-
-                // Update Room Reservations
-                const roomReservationsList = document.getElementById('room-reservations-list');
-                roomReservationsList.innerHTML = data.room_reservations.map(res => 
-                    `<li>${res.user} - Room ${res.room} - ${res.date} ${res.start_time}</li>`
-                ).join('');
-
-                // Update Orders (initial load)
-                const ordersList = document.getElementById('orders-list');
-                ordersList.innerHTML = data.orders.map(order => {
-                    const itemsText = order.items && order.items.length > 0 
-                        ? ` (Items: ${order.items.map(i => `${i.name} x${i.quantity}`).join(', ')})` 
-                        : '';
-                    return `<li data-order-id="${order.id}">
-                        ${order.user} - Table ${order.table} - ${order.created_at} - ${order.status}${itemsText}
-                        <div>
-                            <select class="status-select" data-order-id="${order.id}">
-                                <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                                <option value="Preparing" ${order.status === 'Preparing' ? 'selected' : ''}>Preparing</option>
-                                <option value="Ready" ${order.status === 'Ready' ? 'selected' : ''}>Ready</option>
-                                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                            </select>
-                            <button class="status-btn" data-order-id="${order.id}">Update Status</button>
-                        </div>
-                    </li>`;
-                }).join('');
-                lastOrderId = Math.max(0, ...Array.from(document.querySelectorAll('#orders-list li'))
-                    .map(li => parseInt(li.getAttribute('data-order-id') || 0)));
-                attachStatusButtonListeners(); // Re-attach listeners after updating DOM
-            })
-            .catch(error => console.error('Error fetching data:', error.message));
-        }
-
-        function fetchNewOrders() {
-            if (!selectedDate) return; // Don’t fetch if no date selected
-            fetch(`/cafe/admin/get_new_orders/?last_order_id=${lastOrderId}&date=${encodeURIComponent(selectedDate)}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                if (!data.orders || !Array.isArray(data.orders)) {
-                    console.warn('Invalid orders data:', data);
-                    return;
-                }
-                const ordersList = document.getElementById('orders-list');
-                data.orders.forEach(order => {
-                    if (!document.querySelector(`li[data-order-id="${order.id}"]`)) {
-                        const newOrder = document.createElement('li');
-                        newOrder.setAttribute('data-order-id', order.id);
-                        const itemsText = order.items && order.items.length > 0 
-                            ? ` (Items: ${order.items.map(i => `${i.name} x${i.quantity}`).join(', ')})` 
-                            : '';
-                        newOrder.innerHTML = `${order.user} - Table ${order.table} - ${order.created_at} - ${order.status}${itemsText}
-                            <div>
-                                <select class="status-select" data-order-id="${order.id}">
-                                    <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                                    <option value="Preparing" ${order.status === 'Preparing' ? 'selected' : ''}>Preparing</option>
-                                    <option value="Ready" ${order.status === 'Ready' ? 'selected' : ''}>Ready</option>
-                                    <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                                </select>
-                                <button class="status-btn" data-order-id="${order.id}">Update Status</button>
-                            </div>`;
-                        ordersList.append(newOrder);
-                        lastOrderId = Math.max(lastOrderId, order.id);
-                    }
-                });
-                attachStatusButtonListeners(); // Re-attach listeners for new orders
-            })
-            .catch(error => console.error('Error fetching new orders:', error.message));
-        }
-
-        // Event listener for date change
-        datePicker.addEventListener('change', function() {
-            selectedDate = this.value;
-            fetchDataForDate(selectedDate);
-            lastOrderId = 0; // Reset to fetch all orders for the new date
-        });
-
-        // Handle Status Update Buttons
-        function attachStatusButtonListeners() {
-            document.querySelectorAll('.status-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const orderId = this.getAttribute('data-order-id');
-                    const select = document.querySelector(`.status-select[data-order-id="${orderId}"]`);
-                    const newStatus = select.value;
-
-                    fetch(`/cafe/admin/update_order_status/${orderId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-CSRFToken': getCookie('csrftoken')
-                        },
-                        body: `status=${encodeURIComponent(newStatus)}`
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            // Update the status text in the UI without full reload
-                            const li = document.querySelector(`li[data-order-id="${orderId}"]`);
-                            const parts = li.textContent.split(' - ');
-                            parts[3] = newStatus; // Update status part
-                            li.firstChild.textContent = parts.join(' - ');
-                        } else {
-                            alert('Failed to update status');
-                        }
-                    })
-                    .catch(error => console.error('Error updating status:', error.message));
-                });
-            });
-        }
-
-        // Initial fetch and setup
-        fetchDataForDate(selectedDate);
-        fetchNewOrders();
-        attachStatusButtonListeners();
-
-        // Poll every 1 second for new orders
-        setInterval(fetchNewOrders, 1000);
-
-        // Function to get CSRF token from cookies (used for POST requests)
+        // No real-time updates needed since reservations are moved to separate pages
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
