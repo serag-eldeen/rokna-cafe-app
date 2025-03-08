@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <title>Orders Management</title>
     <style>
         /* Reset and Global Styles */
         * {
@@ -60,7 +60,7 @@
             50% { transform: translate(50vw, 60vh) scale(1.4); opacity: 0.8; }
         }
 
-        .admin-container {
+        .orders-container {
             max-width: 1100px;
             margin: 80px auto;
             padding: 40px;
@@ -72,7 +72,7 @@
             border: 3px solid rgba(170, 88, 37, 0.5);
         }
 
-        .admin-container:hover {
+        .orders-container:hover {
             transform: translateY(-10px);
             box-shadow: 0 18px 60px rgba(170, 88, 37, 0.4), 0 0 90px rgba(216, 155, 110, 0.3);
         }
@@ -139,70 +139,6 @@
             text-shadow: 0 0 10px rgba(170, 88, 37, 0.3);
         }
 
-        form {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        input[type="number"], input[type="text"], input[type="file"] {
-            padding: 12px 18px;
-            font-size: 1.1em;
-            background: rgba(228, 211, 193, 0.7);
-            border: 2px solid #aa5825;
-            border-radius: 10px;
-            color: #aa5825;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-            width: 200px;
-        }
-
-        input[type="number"]:focus, input[type="text"]:focus, input[type="file"]:focus {
-            border-color: #d89b6e;
-            box-shadow: 0 0 15px rgba(216, 155, 110, 0.5);
-            transform: scale(1.02);
-        }
-
-        .select-field {
-            padding: 12px 18px;
-            font-size: 1.1em;
-            background: rgba(228, 211, 193, 0.7);
-            border: 2px solid #aa5825;
-            border-radius: 10px;
-            color: #aa5825;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-            width: 200px;
-        }
-
-        .select-field:focus {
-            border-color: #d89b6e;
-            box-shadow: 0 0 15px rgba(216, 155, 110, 0.5);
-            transform: scale(1.02);
-        }
-
-        button[type="submit"] {
-            padding: 12px 25px;
-            background: linear-gradient(45deg, #e4d3c1, #d89b6e);
-            color: #aa5825;
-            border: none;
-            border-radius: 15px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(170, 88, 37, 0.2);
-            transition: transform 0.4s ease, background 0.4s ease, color 0.4s ease, box-shadow 0.3s ease;
-        }
-
-        button[type="submit"]:hover {
-            transform: translateY(-5px) scale(1.05);
-            background: linear-gradient(45deg, #d89b6e, #aa5825);
-            color: #e4d3c1;
-            box-shadow: 0 10px 25px rgba(216, 155, 110, 0.4);
-        }
-
         ul {
             list-style: none;
             padding: 0;
@@ -211,13 +147,17 @@
         li {
             padding: 15px 20px;
             margin: 10px 0;
-            background: rgba(228, 211, 193, 0.8);
+            background: rgba(255, 245, 230, 0.9);
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(170, 88, 37, 0.15);
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            border-left: 5px solid #aa5825;
+            animation: slideInFromRight 0.5s ease-out;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         li:hover {
@@ -226,20 +166,12 @@
             background: rgba(216, 155, 110, 0.3);
         }
 
-        #orders-list li {
-            background: rgba(255, 245, 230, 0.9);
-            border-left: 5px solid #aa5825;
-            animation: slideInFromRight 0.5s ease-out;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
         @keyframes slideInFromRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
-        .edit-btn, .delete-btn, .status-btn {
+        .status-btn {
             padding: 8px 15px;
             font-size: 0.9em;
             background: #e4d3c1;
@@ -250,23 +182,11 @@
             transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .edit-btn:hover, .status-btn:hover {
+        .status-btn:hover {
             transform: translateY(-3px);
             background: #d89b6e;
             color: #e4d3c1;
             box-shadow: 0 5px 15px rgba(216, 155, 110, 0.4);
-        }
-
-        .delete-btn {
-            margin-left: 10px;
-            background: rgba(170, 88, 37, 0.2);
-        }
-
-        .delete-btn:hover {
-            transform: translateY(-3px);
-            background: #aa5825;
-            color: #e4d3c1;
-            box-shadow: 0 5px 15px rgba(170, 88, 37, 0.4);
         }
 
         .status-select {
@@ -323,7 +243,7 @@
         }
 
         @media (max-width: 768px) {
-            .admin-container {
+            .orders-container {
                 margin: 20px 10px;
                 padding: 20px;
                 max-width: 100%;
@@ -342,25 +262,13 @@
             h2 {
                 font-size: 1.5em;
             }
-            form {
-                gap: 10px;
-            }
-            input[type="number"], input[type="text"], input[type="file"], .select-field {
-                width: 150px;
-                padding: 10px;
-                font-size: 1em;
-            }
-            button[type="submit"] {
-                padding: 10px 20px;
-                font-size: 1em;
-            }
             li {
                 padding: 10px 15px;
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 10px;
             }
-            .edit-btn, .delete-btn, .status-btn {
+            .status-btn {
                 padding: 6px 12px;
                 font-size: 0.85em;
             }
@@ -375,7 +283,7 @@
         }
 
         @media (max-width: 480px) {
-            .admin-container {
+            .orders-container {
                 margin: 10px 5px;
                 padding: 15px;
             }
@@ -389,19 +297,10 @@
             h2 {
                 font-size: 1.2em;
             }
-            input[type="number"], input[type="text"], input[type="file"], .select-field {
-                width: 120px;
-                padding: 8px;
-                font-size: 0.9em;
-            }
-            button[type="submit"] {
-                padding: 8px 15px;
-                font-size: 0.9em;
-            }
             li {
                 padding: 8px 10px;
             }
-            .edit-btn, .delete-btn, .status-btn {
+            .status-btn {
                 padding: 5px 10px;
                 font-size: 0.8em;
             }
@@ -413,8 +312,8 @@
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <h1>Admin Panel</h1>
+    <div class="orders-container">
+        <h1>Orders Management</h1>
         <div class="date-filter">
             <label for="date-picker">Select Date:</label>
             <input type="date" id="date-picker" value="{{ selected_date|date:'Y-m-d' }}">
@@ -425,94 +324,6 @@
         {% if error %}
             <p class="error">{{ error }}</p>
         {% endif %}
-
-        <div class="section">
-            <h2>Manage Tables</h2>
-            <form id="add-table-form" method="POST" action="{% url 'cafe:add_table' %}">
-                {% csrf_token %}
-                <input type="number" name="number" placeholder="Table Number" required>
-                <button type="submit">Add Table</button>
-            </form>
-            <ul id="tables-list">
-                {% for table in tables %}
-                    <li>
-                        Table {{ table.number }} - {{ table.is_available|yesno:"Available,Reserved" }}
-                        <div>
-                            <button class="edit-btn" data-id="{{ table.id }}" data-number="{{ table.number }}" data-available="{{ table.is_available }}">Edit</button>
-                            <button class="delete-btn" data-id="{{ table.id }}">Delete</button>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2>Manage Rooms</h2>
-            <form id="add-room-form" method="POST" action="{% url 'cafe:add_room' %}">
-                {% csrf_token %}
-                <input type="number" name="number" placeholder="Room Number" required>
-                <button type="submit">Add Room</button>
-            </form>
-            <ul id="rooms-list">
-                {% for room in rooms %}
-                    <li>
-                        Room {{ room.number }} - {{ room.is_available|yesno:"Available,Reserved" }}
-                        <div>
-                            <button class="edit-btn" data-id="{{ room.id }}" data-number="{{ room.number }}" data-available="{{ room.is_available }}">Edit</button>
-                            <button class="delete-btn" data-id="{{ room.id }}">Delete</button>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2>Manage Items</h2>
-            <form id="add-item-form" method="POST" action="{% url 'cafe:add_item' %}" enctype="multipart/form-data">
-                {% csrf_token %}
-                <input type="text" name="name" placeholder="Item Name" required>
-                <input type="number" name="price" step="0.01" placeholder="Price" required>
-                <select name="item_type" class="select-field" required>
-                    {% for type_value, type_name in item_types %}
-                        <option value="{{ type_value }}">{{ type_name }}</option>
-                    {% endfor %}
-                </select>
-                <input type="file" name="image" accept="image/*">
-                <button type="submit">Add Item</button>
-            </form>
-            <ul id="items-list">
-                {% for item in items %}
-                    <li>
-                        {{ item.name }} - ${{ item.price }} - {{ item.get_item_type_display }} - {{ item.is_available|yesno:"Available,Out of Stock" }}
-                        {% if item.image %}
-                            <img src="{{ item.image.url }}" alt="{{ item.name }}" style="max-height: 50px; margin-left: 10px;">
-                        {% endif %}
-                        <div>
-                            <button class="edit-btn" data-id="{{ item.id }}" data-name="{{ item.name }}" data-price="{{ item.price }}" data-type="{{ item.item_type }}" data-available="{{ item.is_available }}">Edit</button>
-                            <button class="delete-btn" data-id="{{ item.id }}">Delete</button>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2>Table Reservations</h2>
-            <ul id="table-reservations-list">
-                {% for reservation in table_reservations %}
-                    <li>{{ reservation.user.username }} - Table {{ reservation.table.number }} - {{ reservation.date }} {{ reservation.start_time }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2>Room Reservations</h2>
-            <ul id="room-reservations-list">
-                {% for reservation in room_reservations %}
-                    <li>{{ reservation.user.username }} - Room {{ reservation.room.number }} - {{ reservation.date }} {{ reservation.start_time }}</li>
-                {% endfor %}
-            </ul>
-        </div>
 
         <div class="section">
             <h2>Orders</h2>
@@ -539,122 +350,18 @@
             </ul>
         </div>
 
-        <a href="{% url 'cafe:home' %}" class="back-link">Back</a>
+        <a href="{% url 'cafe:admin_page' %}" class="back-link">Back to Admin Panel</a>
     </div>
 
     <script>
-        // Handle Edit Buttons
-        document.querySelectorAll('.edit-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const id = this.getAttribute('data-id');
-                const type = this.closest('.section').querySelector('h2').textContent.includes('Tables') ? 'table' :
-                             this.closest('.section').querySelector('h2').textContent.includes('Rooms') ? 'room' : 'item';
-
-                if (type === 'table') {
-                    const number = this.getAttribute('data-number');
-                    const isAvailable = this.getAttribute('data-available') === 'True';
-                    const newNumber = prompt('Enter new table number:', number);
-                    const newAvailable = confirm('Is this table available? (OK for Yes, Cancel for No)');
-                    if (newNumber !== null) {
-                        fetch(`/cafe/admin/edit_table/${id}/`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: `number=${encodeURIComponent(newNumber)}&is_available=${newAvailable}`
-                        }).then(response => {
-                            if (response.ok) {
-                                location.reload();
-                            } else {
-                                alert('Failed to update table');
-                            }
-                        });
-                    }
-                } else if (type === 'room') {
-                    const number = this.getAttribute('data-number');
-                    const isAvailable = this.getAttribute('data-available') === 'True';
-                    const newNumber = prompt('Enter new room number:', number);
-                    const newAvailable = confirm('Is this room available? (OK for Yes, Cancel for No)');
-                    if (newNumber !== null) {
-                        fetch(`/cafe/admin/edit_room/${id}/`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: `number=${encodeURIComponent(newNumber)}&is_available=${newAvailable}`
-                        }).then(response => {
-                            if (response.ok) {
-                                location.reload();
-                            } else {
-                                alert('Failed to update room');
-                            }
-                        });
-                    }
-                } else if (type === 'item') {
-                    const name = this.getAttribute('data-name');
-                    const price = this.getAttribute('data-price');
-                    const itemType = this.getAttribute('data-type');
-                    const isAvailable = this.getAttribute('data-available') === 'True';
-                    const newName = prompt('Enter new item name:', name);
-                    const newPrice = prompt('Enter new price:', price);
-                    const newType = prompt('Enter new item type (e.g., dessert, coffee, smoothie):', itemType);
-                    const newAvailable = confirm('Is this item available? (OK for Yes, Cancel for No)');
-                    if (newName !== null && newPrice !== null && newType !== null) {
-                        fetch(`/cafe/admin/edit_item/${id}/`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: `name=${encodeURIComponent(newName)}&price=${encodeURIComponent(newPrice)}&item_type=${encodeURIComponent(newType)}&is_available=${newAvailable}`
-                        }).then(response => {
-                            if (response.ok) {
-                                location.reload();
-                            } else {
-                                alert('Failed to update item');
-                            }
-                        });
-                    }
-                }
-            });
-        });
-
-        // Handle Delete Buttons
-        document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const id = this.getAttribute('data-id');
-                const type = this.closest('.section').querySelector('h2').textContent.includes('Tables') ? 'table' :
-                             this.closest('.section').querySelector('h2').textContent.includes('Rooms') ? 'room' : 'item';
-
-                if (confirm('Are you sure you want to delete this?')) {
-                    const url = type === 'table' ? `/cafe/admin/delete_table/${id}/` :
-                                type === 'room' ? `/cafe/admin/delete_room/${id}/` : `/cafe/admin/delete_item/${id}/`;
-                    fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': getCookie('csrftoken')
-                        }
-                    }).then(response => {
-                        if (response.ok) {
-                            location.reload();
-                        } else {
-                            alert('Failed to delete');
-                        }
-                    });
-                }
-            });
-        });
-
         // Date Filter and Real-time Updates
         const datePicker = document.getElementById('date-picker');
         let selectedDate = datePicker.value;
         let lastOrderId = Math.max(0, ...Array.from(document.querySelectorAll('#orders-list li'))
             .map(li => parseInt(li.getAttribute('data-order-id') || 0)));
 
-        function fetchDataForDate(date) {
-            fetch(`/cafe/admin/get_data/?date=${encodeURIComponent(date)}`, {
+        function fetchOrdersForDate(date) {
+            fetch(`/cafe/admin/get_orders/?date=${encodeURIComponent(date)}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -665,19 +372,6 @@
                 return response.json();
             })
             .then(data => {
-                // Update Table Reservations
-                const tableReservationsList = document.getElementById('table-reservations-list');
-                tableReservationsList.innerHTML = data.table_reservations.map(res => 
-                    `<li>${res.user} - Table ${res.table} - ${res.date} ${res.start_time}</li>`
-                ).join('');
-
-                // Update Room Reservations
-                const roomReservationsList = document.getElementById('room-reservations-list');
-                roomReservationsList.innerHTML = data.room_reservations.map(res => 
-                    `<li>${res.user} - Room ${res.room} - ${res.date} ${res.start_time}</li>`
-                ).join('');
-
-                // Update Orders (initial load)
                 const ordersList = document.getElementById('orders-list');
                 ordersList.innerHTML = data.orders.map(order => {
                     const itemsText = order.items && order.items.length > 0 
@@ -698,13 +392,13 @@
                 }).join('');
                 lastOrderId = Math.max(0, ...Array.from(document.querySelectorAll('#orders-list li'))
                     .map(li => parseInt(li.getAttribute('data-order-id') || 0)));
-                attachStatusButtonListeners(); // Re-attach listeners after updating DOM
+                attachStatusButtonListeners();
             })
-            .catch(error => console.error('Error fetching data:', error.message));
+            .catch(error => console.error('Error fetching orders:', error.message));
         }
 
         function fetchNewOrders() {
-            if (!selectedDate) return; // Don’t fetch if no date selected
+            if (!selectedDate) return;
             fetch(`/cafe/admin/get_new_orders/?last_order_id=${lastOrderId}&date=${encodeURIComponent(selectedDate)}`, {
                 method: 'GET',
                 headers: {
@@ -742,7 +436,7 @@
                         lastOrderId = Math.max(lastOrderId, order.id);
                     }
                 });
-                attachStatusButtonListeners(); // Re-attach listeners for new orders
+                attachStatusButtonListeners();
             })
             .catch(error => console.error('Error fetching new orders:', error.message));
         }
@@ -750,8 +444,8 @@
         // Event listener for date change
         datePicker.addEventListener('change', function() {
             selectedDate = this.value;
-            fetchDataForDate(selectedDate);
-            lastOrderId = 0; // Reset to fetch all orders for the new date
+            fetchOrdersForDate(selectedDate);
+            lastOrderId = 0; // Reset to fetch all orders for new date
         });
 
         // Handle Status Update Buttons
@@ -772,7 +466,6 @@
                     })
                     .then(response => {
                         if (response.ok) {
-                            // Update the status text in the UI without full reload
                             const li = document.querySelector(`li[data-order-id="${orderId}"]`);
                             const parts = li.textContent.split(' - ');
                             parts[3] = newStatus; // Update status part
@@ -787,14 +480,14 @@
         }
 
         // Initial fetch and setup
-        fetchDataForDate(selectedDate);
+        fetchOrdersForDate(selectedDate);
         fetchNewOrders();
         attachStatusButtonListeners();
 
         // Poll every 1 second for new orders
         setInterval(fetchNewOrders, 1000);
 
-        // Function to get CSRF token from cookies (used for POST requests)
+        // Function to get CSRF token
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {

@@ -173,6 +173,30 @@
             cursor: pointer;
         }
 
+        .item-card input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            font-size: 0.9em;
+            background: rgba(228, 211, 193, 0.7);
+            border: 2px solid #aa5825;
+            border-radius: 8px;
+            color: #aa5825;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 5px;
+        }
+
+        .item-card input[type="number"]:focus {
+            border-color: #d89b6e;
+            box-shadow: 0 0 10px rgba(216, 155, 110, 0.5);
+        }
+
+        .item-card input[type="number"]:disabled {
+            background: rgba(170, 88, 37, 0.2);
+            border-color: rgba(170, 88, 37, 0.5);
+            cursor: not-allowed;
+        }
+
         /* Table and Type Selection Styles */
         .select-field {
             padding: 12px 18px;
@@ -282,6 +306,10 @@
                 width: 16px;
                 height: 16px;
             }
+            .item-card input[type="number"] {
+                width: 50px;
+                font-size: 0.85em;
+            }
             .select-field {
                 width: 150px;
                 padding: 10px;
@@ -327,6 +355,10 @@
             }
             .item-card p {
                 font-size: 0.75em;
+            }
+            .item-card input[type="number"] {
+                width: 45px;
+                font-size: 0.8em;
             }
             .select-field {
                 width: 120px;
@@ -375,7 +407,8 @@
                             {% endif %}
                             <h3>{{ item.name }}</h3>
                             <p>${{ item.price }}</p>
-                            <input type="checkbox" name="item_{{ item.id }}" value="1">
+                            <input type="checkbox" name="item_{{ item.id }}" value="{{item.id}}">
+                            <input type="number" name="quantity_{{ item.id }}" min="1" value="1" disabled>
                         </div>
                     {% endfor %}
                 </div>
@@ -386,6 +419,29 @@
         {% endif %}
         <a href="{% url 'cafe:home' %}" class="back-link">Back</a>
     </div>
-    <script src="{% static 'js/script.js' %}"></script>
+
+    <script>
+        // Enable/disable quantity input and ensure it's submitted
+        document.querySelectorAll('.item-card input[type="checkbox"]').forEach(checkbox => {
+            const quantityInput = checkbox.nextElementSibling;
+            checkbox.addEventListener('change', function() {
+                quantityInput.disabled = !this.checked;
+                // Remove disabled attribute before form submission if checked
+                if (this.checked) {
+                    quantityInput.removeAttribute('disabled');
+                }
+            });
+        });
+
+        // Ensure all enabled quantity inputs are submitted
+        document.getElementById('order-form').addEventListener('submit', function(e) {
+            document.querySelectorAll('.item-card input[type="checkbox"]:checked').forEach(checkbox => {
+                const quantityInput = checkbox.nextElementSibling;
+                if (quantityInput.disabled) {
+                    quantityInput.removeAttribute('disabled');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

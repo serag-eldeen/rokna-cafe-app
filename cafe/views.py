@@ -5,8 +5,10 @@ from django.contrib.auth.forms import UserCreationForm
 from django.views.decorators.csrf import csrf_exempt
 from .models import Table, Room, Item, TableReservation, RoomReservation, Order, OrderItem, Testimonial, ITEM_TYPES  # Import ITEM_TYPESfrom django.conf import settings
 from datetime import datetime, timedelta
+from django.utils import timezone
 import os
 from django.conf import settings
+from django.http import JsonResponse, HttpResponse
 
 def home(request):
     if request.method == 'POST':
@@ -184,23 +186,33 @@ def place_order(request):
     if request.method == 'POST':
         items = Item.objects.filter(is_available=True)
         table_number = request.POST.get('table_number')
-        item_type = request.POST.get('item_type')  # Get selected item type
+        item_type = request.POST.get('item_type')
         selected_items = []
 
-        # Filter items by type if specified
+        # Debug: Print the entire POST data
+        print("POST Data:", request.POST)
+
         if item_type:
             items = items.filter(item_type=item_type)
 
-        # Collect selected items
         for item in items:
-            if request.POST.get(f'item_{item.id}'):
-                selected_items.append((item, 1))
+            if f'item_{item.id}' in request.POST:
+                quantity = request.POST.get(f'quantity_{item.id}', 1)
+                print(f"Item {item.id} selected, raw quantity: {quantity}")
+                try:
+                    quantity = int(quantity)
+                    if quantity < 1:
+                        quantity = 1
+                except (ValueError, TypeError):
+                    quantity = 1
+                print(f"Processed quantity for item {item.id}: {quantity}")
+                selected_items.append((item, quantity))
 
         if not selected_items:
             return render(request, 'cafe/place_order.html', {
                 'items': items,
                 'tables': Table.objects.all(),
-                'item_types': ITEM_TYPES,  # Use the imported ITEM_TYPES
+                'item_types': ITEM_TYPES,
                 'selected_type': item_type,
                 'error': 'No items selected'
             })
@@ -225,12 +237,11 @@ def place_order(request):
                 'error': 'Invalid table number'
             })
 
-        # Create and save the order with the table
         order = Order(user=request.user, table=table)
         order.save()
         for item, quantity in selected_items:
             if not item.is_available:
-                order.delete()  # Rollback if an item is unavailable
+                order.delete()
                 return render(request, 'cafe/place_order.html', {
                     'items': items,
                     'tables': Table.objects.all(),
@@ -238,7 +249,8 @@ def place_order(request):
                     'selected_type': item_type,
                     'error': f'{item.name} is out of stock'
                 })
-            OrderItem.objects.create(order=order, item=item, quantity=quantity)
+            order_item = OrderItem.objects.create(order=order, item=item, quantity=quantity)
+            print(f"Saved OrderItem: {order_item.item.name} x{order_item.quantity}")
 
         return render(request, 'cafe/place_order.html', {
             'items': items,
@@ -248,42 +260,134 @@ def place_order(request):
             'message': 'Order placed successfully!'
         })
 
-    # GET request: Show all available items initially
     items = Item.objects.filter(is_available=True)
     tables = Table.objects.all()
     return render(request, 'cafe/place_order.html', {
         'items': items,
         'tables': tables,
-        'item_types': ITEM_TYPES,  # Use the imported ITEM_TYPES
+        'item_types': ITEM_TYPES,
         'selected_type': None
     })
 # Staff Check
 def is_staff(user):
     return user.is_staff
 
-# Admin Page View
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(lambda u: u.is_staff)
 def admin_page(request):
-    tables = Table.objects.all()
-    rooms = Room.objects.all()
-    items = Item.objects.all()
-    table_reservations = TableReservation.objects.all()
-    room_reservations = RoomReservation.objects.all()
-    orders = Order.objects.all()
+    date_str = request.GET.get('date', '')
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+    except ValueError:
+        selected_date = timezone.now().date()
 
     context = {
-        'tables': tables,
-        'rooms': rooms,
-        'items': items,
-        'table_reservations': table_reservations,
-        'room_reservations': room_reservations,
-        'orders': orders,
-        'item_types': ITEM_TYPES,  # Added ITEM_TYPES for the admin page dropdown
+        'tables': Table.objects.all(),
+        'rooms': Room.objects.all(),
+        'items': Item.objects.all(),
+        'table_reservations': TableReservation.objects.filter(date=selected_date),
+        'room_reservations': RoomReservation.objects.filter(date=selected_date),
+        'orders': Order.objects.filter(created_at__date=selected_date),
+        'item_types': ITEM_TYPES,
+        'selected_date': selected_date,
     }
     return render(request, 'cafe/admin_page.html', context)
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@csrf_exempt
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@csrf_exempt
+def get_data(request):
+    date_str = request.GET.get('date', '')
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+    except ValueError:
+        selected_date = timezone.now().date()
 
-# Admin Table Management
+    table_reservations = TableReservation.objects.filter(date=selected_date)
+    room_reservations = RoomReservation.objects.filter(date=selected_date)
+    orders = Order.objects.filter(created_at__date=selected_date).order_by('created_at')
+
+    data = {
+        'table_reservations': [
+            {
+                'user': res.user.username,
+                'table': res.table.number,
+                'date': res.date.strftime('%Y-%m-%d'),
+                'start_time': res.start_time.strftime('%H:%M')
+            } for res in table_reservations
+        ],
+        'room_reservations': [
+            {
+                'user': res.user.username,
+                'room': res.room.number,
+                'date': res.date.strftime('%Y-%m-%d'),
+                'start_time': res.start_time.strftime('%H:%M')
+            } for res in room_reservations
+        ],
+        'orders': [
+            {
+                'id': order.id,
+                'user': order.user.username,
+                'table': order.table.number if order.table else 'None',
+                'created_at': timezone.localtime(order.created_at).strftime('%Y-%m-%d %H:%M:%S'),
+                'status': order.status,
+                'items': [{'name': oi.item.name, 'quantity': oi.quantity} for oi in order.orderitem_set.all()]
+            } for order in orders
+        ]
+    }
+    return JsonResponse(data)    
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@csrf_exempt
+def get_new_orders(request):
+    last_order_id = int(request.GET.get('last_order_id', 0))
+    date_str = request.GET.get('date', '')
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+    except ValueError:
+        selected_date = timezone.now().date()
+
+    new_orders = Order.objects.filter(
+        id__gt=last_order_id,
+        created_at__date=selected_date
+    ).order_by('created_at')
+
+    orders_data = [
+        {
+            'id': order.id,
+            'user': order.user.username,
+            'table': order.table.number if order.table else 'None',
+            'created_at': timezone.localtime(order.created_at).strftime('%Y-%m-%d %H:%M:%S'),
+            'status': order.status,
+            'items': [{'name': oi.item.name, 'quantity': oi.quantity} for oi in order.orderitem_set.all()]
+        }
+        for order in new_orders
+    ]
+    return JsonResponse({'orders': orders_data})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@csrf_exempt
+def update_order_status(request, order_id):
+    if request.method == 'POST':
+        try:
+            order = Order.objects.get(id=order_id)
+            new_status = request.POST.get('status')
+            valid_statuses = ['Pending', 'Preparing', 'Ready', 'Delivered']
+            if new_status in valid_statuses:
+                order.status = new_status
+                order.save()
+                return HttpResponse(status=200)
+            else:
+                return HttpResponse('Invalid status', status=400)
+        except Order.DoesNotExist:
+            return HttpResponse('Order not found', status=404)
+        except Exception as e:
+            return HttpResponse(f'Error: {str(e)}', status=500)
+    return HttpResponse('Method not allowed', status=405)
+    
 @csrf_exempt
 @login_required
 @user_passes_test(is_staff)

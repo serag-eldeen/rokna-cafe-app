@@ -76,7 +76,7 @@ class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     items = models.ManyToManyField(Item, through='OrderItem')
     table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)  # Automatically set to now in server's timezone
     status = models.CharField(max_length=20, default='Pending')
 
     def __str__(self):
