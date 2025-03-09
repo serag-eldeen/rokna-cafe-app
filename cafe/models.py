@@ -23,7 +23,8 @@ ITEM_TYPES = [
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=15, unique=True)  # e.g., "+1234567890"
+    phone_number = models.CharField(max_length=15, unique=True)
+    points = models.PositiveIntegerField(default=0)  # New field for loyalty points
 
     def __str__(self):
         return f"{self.user.username} - {self.phone_number}"
@@ -59,6 +60,7 @@ class TableReservation(models.Model):
     start_time = models.TimeField()
     duration = models.IntegerField(choices=[(30, '30 min'), (60, '1 hour'), (120, '2 hours')])
     created_at = models.DateTimeField(auto_now_add=True)
+    attended = models.BooleanField(null=True, blank=True, default=None)  # New field: True (attended), False (no-show), None (not yet confirmed)
 
     def __str__(self):
         return f"{self.user.username} - Table {self.table.number} - {self.date}"
@@ -70,6 +72,10 @@ class RoomReservation(models.Model):
     start_time = models.TimeField()
     duration = models.IntegerField(choices=[(30, '30 min'), (60, '1 hour'), (120, '2 hours')])
     created_at = models.DateTimeField(auto_now_add=True)
+    attended = models.BooleanField(null=True, blank=True, default=None)  # New field: True (attended), False (no-show), None (not yet confirmed)
+
+    def __str__(self):
+        return f"{self.user.username} - Room {self.room.number} - {self.date}"
 
     def __str__(self):
         return f"{self.user.username} - Room {self.room.number} - {self.date}"

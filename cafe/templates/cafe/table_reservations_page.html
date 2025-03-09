@@ -36,6 +36,45 @@
             z-index: -1;
             animation: cosmic-pulse 12s infinite ease-in-out;
         }
+        .attendance-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .attendance-button {
+            padding: 5px 10px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.3s ease;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .attendance-button.true {
+            background: #28a745; /* Green for attended */
+            color: white;
+        }
+        .attendance-button.false {
+            background: #dc3545; /* Red for no-show */
+            color: white;
+        }
+        .attendance-button:hover {
+            transform: scale(1.1);
+        }
+        .attendance-button.disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: nowrap; /* Ensure buttons stay on the same line */
+        }
 
         @keyframes cosmic-pulse {
             0%, 100% { opacity: 0.4; }
@@ -238,6 +277,7 @@
                 margin-top: 20px;
             }
         }
+        
 
         @media (max-width: 480px) {
             .reservations-container {
@@ -279,7 +319,17 @@
             <ul id="table-reservations-list">
                 {% for reservation in table_reservations %}
                     <li data-reservation-id="{{ reservation.id }}">
-                        {{ reservation.user.username }} - Table {{ reservation.table.number }} - {{ reservation.date }} {{ reservation.start_time }}
+                        <span>{{ reservation.user.username }} - Table {{ reservation.table.number }} - {{ reservation.date }} {{ reservation.start_time }}</span>
+                        {% if reservation.attended is not None %}
+                            <span class="attendance-status {% if reservation.attended %}attended{% else %}not-attended{% endif %}">
+                                {% if reservation.attended %}Client Attended{% else %}Client Did Not Attend{% endif %}
+                            </span>
+                        {% else %}
+                            <div class="attendance-buttons">
+                                <button class="attendance-button true" data-attended="true">✔</button>
+                                <button class="attendance-button false" data-attended="false">✘</button>
+                            </div>
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>
@@ -289,77 +339,121 @@
     </div>
 
     <script>
-        // Date Filter and Real-time Updates
         const datePicker = document.getElementById('date-picker');
         let selectedDate = datePicker.value;
         let lastReservationId = Math.max(0, ...Array.from(document.querySelectorAll('#table-reservations-list li'))
             .map(li => parseInt(li.getAttribute('data-reservation-id') || 0)));
 
-        function fetchReservationsForDate(date) {
-            fetch(`/cafe/admin/get_table_reservations/?date=${encodeURIComponent(date)}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
-            })
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                const reservationsList = document.getElementById('table-reservations-list');
-                reservationsList.innerHTML = data.table_reservations.map(res => 
-                    `<li data-reservation-id="${res.id}">${res.user} - Table ${res.table} - ${res.date} ${res.start_time}</li>`
-                ).join('');
-                lastReservationId = Math.max(0, ...Array.from(document.querySelectorAll('#table-reservations-list li'))
-                    .map(li => parseInt(li.getAttribute('data-reservation-id') || 0)));
-            })
-            .catch(error => console.error('Error fetching reservations:', error.message));
+            }
+            return cookieValue;
+        }
+
+        const csrfToken = getCookie('csrftoken');
+
+        function fetchReservationsForDate(date) {
+            fetch(`/cafe/get_table_reservations/?date=${encodeURIComponent(date)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const reservationsList = document.getElementById('table-reservations-list');
+                    reservationsList.innerHTML = data.table_reservations.map(res => `
+                        <li data-reservation-id="${res.id}">
+                            <span>${res.user} - Table ${res.table} - ${res.date} ${res.start_time}</span>
+                            ${res.attended !== null ?
+                                `<span class="attendance-status ${res.attended ? 'attended' : 'not-attended'}">
+                                    ${res.attended ? 'Client Attended' : 'Client Did Not Attend'}
+                                </span>` :
+                                `<div class="attendance-buttons">
+                                    <button class="attendance-button true" data-attended="true">✔</button>
+                                    <button class="attendance-button false" data-attended="false">✘</button>
+                                </div>`
+                            }
+                        </li>
+                    `).join('');
+                    lastReservationId = Math.max(0, ...Array.from(document.querySelectorAll('#table-reservations-list li'))
+                        .map(li => parseInt(li.getAttribute('data-reservation-id') || 0)));
+                    addButtonListeners();
+                })
+                .catch(error => console.error('Error fetching reservations:', error));
         }
 
         function fetchNewReservations() {
             if (!selectedDate) return;
-            fetch(`/cafe/admin/get_new_table_reservations/?last_reservation_id=${lastReservationId}&date=${encodeURIComponent(selectedDate)}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                if (!data.table_reservations || !Array.isArray(data.table_reservations)) {
-                    console.warn('Invalid reservations data:', data);
-                    return;
-                }
-                const reservationsList = document.getElementById('table-reservations-list');
-                data.table_reservations.forEach(res => {
-                    if (!document.querySelector(`li[data-reservation-id="${res.id}"]`)) {
-                        const newReservation = document.createElement('li');
-                        newReservation.setAttribute('data-reservation-id', res.id);
-                        newReservation.textContent = `${res.user} - Table ${res.table} - ${res.date} ${res.start_time}`;
-                        reservationsList.append(newReservation);
-                        lastReservationId = Math.max(lastReservationId, res.id);
-                    }
-                });
-            })
-            .catch(error => console.error('Error fetching new reservations:', error.message));
+            fetch(`/cafe/admin/get_new_table_reservations/?last_reservation_id=${lastReservationId}&date=${encodeURIComponent(selectedDate)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const reservationsList = document.getElementById('table-reservations-list');
+                    data.table_reservations.forEach(res => {
+                        if (!document.querySelector(`li[data-reservation-id="${res.id}"]`)) {
+                            const newReservation = document.createElement('li');
+                            newReservation.setAttribute('data-reservation-id', res.id);
+                            newReservation.innerHTML = `
+                                <span>${res.user} - Table ${res.table} - ${res.date} ${res.start_time}</span>
+                                <div class="attendance-buttons">
+                                    <button class="attendance-button true" data-attended="true">✔</button>
+                                    <button class="attendance-button false" data-attended="false">✘</button>
+                                </div>
+                            `;
+                            reservationsList.appendChild(newReservation);
+                            lastReservationId = Math.max(lastReservationId, res.id);
+                            addButtonListeners(newReservation);
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching new reservations:', error));
         }
 
-        // Event listener for date change
+        function addButtonListeners(element = document) {
+            element.querySelectorAll('.attendance-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const reservationId = this.closest('li').getAttribute('data-reservation-id');
+                    const attended = this.getAttribute('data-attended');
+                    const buttonsDiv = this.closest('.attendance-buttons');
+
+                    fetch(`/cafe/admin/update_reservation_attendance/table/${reservationId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: `attended=${attended}`
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'success') {
+                            const statusText = document.createElement('span');
+                            statusText.className = `attendance-status ${data.attended ? 'attended' : 'not-attended'}`;
+                            statusText.textContent = data.attended ? 'Client Attended' : 'Client Did Not Attend';
+                            buttonsDiv.replaceWith(statusText);
+                        }
+                    })
+                    .catch(error => console.error('Error updating attendance:', error));
+                });
+            });
+        }
+
         datePicker.addEventListener('change', function() {
             selectedDate = this.value;
             fetchReservationsForDate(selectedDate);
-            lastReservationId = 0; // Reset to fetch all reservations for new date
+            lastReservationId = 0;
         });
 
-        // Initial fetch and setup
         fetchReservationsForDate(selectedDate);
         fetchNewReservations();
-
-        // Poll every 1 second for new reservations
+        addButtonListeners();
         setInterval(fetchNewReservations, 1000);
     </script>
 </body>

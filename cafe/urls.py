@@ -34,4 +34,5 @@ urlpatterns = [
     path('admin/room_reservations/', views.room_reservations_page, name='room_reservations_page'),
     path('get_room_reservations/', views.get_room_reservations, name='get_room_reservations'),
     path('admin/get_new_room_reservations/', views.get_new_room_reservations, name='get_new_room_reservations'),
+    path('admin/update_reservation_attendance/<str:reservation_type>/<int:reservation_id>/', views.update_reservation_attendance, name='update_reservation_attendance'),
 ]

@@ -60,6 +60,11 @@
             flex-direction: column;
             gap: 15px;
         }
+        label {
+            font-size: 1em;
+            color: #aa5825;
+            text-align: left;
+        }
         input[type="text"], input[type="password"] {
             padding: 10px;
             border: 1px solid #aa5825;
@@ -166,10 +171,15 @@
         <h1>Login</h1>
         <form method="POST">
             {% csrf_token %}
-            <input type="text" name="username" placeholder="Phone Number (e.g., +1234567890)" required>
-            <input type="password" name="password" placeholder="Password" required>
+            <label for="username">Phone Number</label>
+            <input type="text" name="username" id="username" placeholder="e.g., +1234567890" required>
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" placeholder="Password" required>
             <button type="submit">Login</button>
         </form>
+        {% if error %}
+            <div class="alert show">{{ error }}</div>
+        {% endif %}
         <p>Don't have an account? <a href="{% url 'cafe:signup' %}">Sign Up</a></p>
         <a href="{% url 'cafe:home' %}" class="back-button">Back to Home</a>
     </div>
@@ -200,6 +210,14 @@
             }
         `;
         document.head.appendChild(styleSheet);
+
+        // Show alert for 3 seconds if present
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 3000);
+        }
     </script>
 </body>
 </html>

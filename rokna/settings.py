@@ -53,9 +53,26 @@ DATABASES = {
     }
 }
 # settings.py
+# settings.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
+# settings.py
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',  # Default backend (username)
-    'cafe.auth_backend.PhoneNumberBackend',       # Custom backend (phone number)
+    'cafe.auth_backends.PhoneOrUsernameBackend',  # Your custom backend
+    'django.contrib.auth.backends.ModelBackend',  # Keep default as fallback (optional)
 ]
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

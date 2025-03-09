@@ -13,6 +13,9 @@ from django.contrib.auth import authenticate, login
 from django.views import View
 from django.contrib.auth.models import User
 from .models import UserProfile
+import logging
+
+logger = logging.getLogger(__name__)  # For debugging
 
 def signup(request):
     if request.method == 'POST':
@@ -37,15 +40,25 @@ def home(request):
         content = request.POST.get('content')
         if author and content:
             Testimonial.objects.create(author=author, content=content)
-        return redirect('cafe:home')  # Redirect to refresh the page
+        return redirect('cafe:home')
 
     menu_dir = os.path.join(settings.STATICFILES_DIRS[0], 'menu')
     image_files = [f for f in os.listdir(menu_dir) if f.endswith(('.jpg', '.png', '.jpeg', '.gif'))]
-    testimonials = Testimonial.objects.all().order_by('-created_at')  # Latest first
+    testimonials = Testimonial.objects.all().order_by('-created_at')
+    points = 0
+    if request.user.is_authenticated:
+        try:
+            user_profile = UserProfile.objects.get(user=request.user)
+            points = user_profile.points
+        except UserProfile.DoesNotExist:
+            points = 0  # Default if no profile exists yet
+
     return render(request, 'cafe/home.html', {
         'menu_images': image_files,
-        'testimonials': testimonials
+        'testimonials': testimonials,
+        'points': points  # Add points to context
     })
+# views.py
 class CustomLoginView(View):
     template_name = 'cafe/login.html'
 
@@ -53,19 +66,18 @@ class CustomLoginView(View):
         return render(request, self.template_name)
 
     def post(self, request):
-        phone_number = request.POST.get('username')  # Treat 'username' field as phone number
+        identifier = request.POST.get('username')  # Could be phone number or username
         password = request.POST.get('password')
         
-        # Authenticate using the phone number
-        user = authenticate(request, username=phone_number, password=password)
+        # Authenticate using the custom backend
+        user = authenticate(request, username=identifier, password=password)
         
         if user is not None:
             login(request, user)
-            return redirect('cafe:home')  # Redirect to home on success
+            return redirect('cafe:home')
         else:
-            # Pass an error message to the template
             return render(request, self.template_name, {
-                'error': 'Invalid phone number or password.'
+                'error': 'Invalid phone number/username or password.'
             })
 def submit_feedback(request):
     if request.method == 'POST':
@@ -338,6 +350,51 @@ def orders_page(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
+@csrf_exempt  # Temporarily for testing; secure with CSRF token later
+def update_reservation_attendance(request, reservation_type, reservation_id):
+    if request.method == 'POST':
+        logger.info(f"Received POST request for {reservation_type} reservation ID {reservation_id}")
+        try:
+            if reservation_type == 'table':
+                reservation = TableReservation.objects.get(id=reservation_id)
+            elif reservation_type == 'room':
+                reservation = RoomReservation.objects.get(id=reservation_id)
+            else:
+                logger.error(f"Invalid reservation type: {reservation_type}")
+                return HttpResponse('Invalid reservation type', status=400)
+
+            attended = request.POST.get('attended')
+            logger.info(f"Attended value received: {attended}")
+            if attended == 'true':
+                reservation.attended = True
+                # Increase user's points
+                user_profile = UserProfile.objects.get(user=reservation.user)
+                user_profile.points += 10  # Example: +10 points per attended reservation
+                user_profile.save()
+                logger.info(f"Increased points for {reservation.user.username} to {user_profile.points}")
+            elif attended == 'false':
+                reservation.attended = False
+            else:
+                logger.error(f"Invalid attended value: {attended}")
+                return HttpResponse('Invalid attended value', status=400)
+
+            reservation.save()
+            logger.info(f"Updated {reservation_type} reservation {reservation_id} with attended={reservation.attended}")
+            return JsonResponse({'status': 'success', 'attended': reservation.attended})
+        except (TableReservation.DoesNotExist, RoomReservation.DoesNotExist):
+            logger.error(f"Reservation not found: {reservation_type} {reservation_id}")
+            return HttpResponse('Reservation not found', status=404)
+        except UserProfile.DoesNotExist:
+            logger.error(f"UserProfile not found for user: {reservation.user.username}")
+            return HttpResponse('User profile not found', status=500)
+        except Exception as e:
+            logger.error(f"Error updating attendance: {str(e)}")
+            return HttpResponse(f'Error: {str(e)}', status=500)
+    logger.warning(f"Invalid method: {request.method}")
+    return HttpResponse('Method not allowed', status=405)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
 def table_reservations_page(request):
     date_str = request.GET.get('date', '')
     try:
@@ -366,6 +423,7 @@ def room_reservations_page(request):
     }
     return render(request, 'cafe/room_reservations_page.html', context)
 
+# Update get_room_reservations to include attended status
 @login_required
 @csrf_exempt
 def get_room_reservations(request):
@@ -385,7 +443,8 @@ def get_room_reservations(request):
                 'room': res.room.number,
                 'date': res.date.strftime('%Y-%m-%d'),
                 'start_time': res.start_time.strftime('%H:%M'),
-                'duration': res.duration  # Add duration here
+                'duration': res.duration,
+                'attended': res.attended  # Include attended status
             } for res in reservations
         ]
     }
@@ -492,7 +551,8 @@ def get_table_reservations(request):
                 'table': res.table.number,
                 'date': res.date.strftime('%Y-%m-%d'),
                 'start_time': res.start_time.strftime('%H:%M'),
-                'duration': res.duration  # Add duration here
+                'duration': res.duration,
+                'attended': res.attended  # Include attended status
             } for res in reservations
         ]
     }
@@ -530,21 +590,40 @@ def get_new_table_reservations(request):
 @csrf_exempt
 def update_order_status(request, order_id):
     if request.method == 'POST':
+        logger.info(f"Received POST request to update order ID {order_id}")
         try:
             order = Order.objects.get(id=order_id)
             new_status = request.POST.get('status')
             valid_statuses = ['Pending', 'Preparing', 'Ready', 'Delivered']
-            if new_status in valid_statuses:
-                order.status = new_status
-                order.save()
-                return HttpResponse(status=200)
-            else:
+            
+            if new_status not in valid_statuses:
+                logger.error(f"Invalid status value: {new_status}")
                 return HttpResponse('Invalid status', status=400)
+
+            # Check if the status is changing to 'Delivered' and wasn’t already 'Delivered'
+            if new_status == 'Delivered' and order.status != 'Delivered':
+                try:
+                    user_profile = UserProfile.objects.get(user=order.user)
+                    user_profile.points += 10  # Award 10 points (adjust as needed)
+                    user_profile.save()
+                    logger.info(f"Increased points for {order.user.username} to {user_profile.points} for order {order_id}")
+                except UserProfile.DoesNotExist:
+                    logger.error(f"UserProfile not found for user: {order.user.username}")
+                    return HttpResponse('User profile not found', status=500)
+
+            order.status = new_status
+            order.save()
+            logger.info(f"Updated order {order_id} to status={order.status}")
+            return HttpResponse(status=200)
         except Order.DoesNotExist:
+            logger.error(f"Order not found: {order_id}")
             return HttpResponse('Order not found', status=404)
         except Exception as e:
+            logger.error(f"Error updating order status: {str(e)}")
             return HttpResponse(f'Error: {str(e)}', status=500)
-    return HttpResponse('Method not allowed', status=405)   
+    logger.warning(f"Invalid method: {request.method}")
+    return HttpResponse('Method not allowed', status=405)
+ 
 @csrf_exempt
 @login_required
 @user_passes_test(is_staff)

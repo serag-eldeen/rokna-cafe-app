@@ -77,6 +77,16 @@
             cursor: pointer;
             z-index: 1001;
         }
+        .points-display {
+            color: #aa5825;
+            font-weight: 500;
+            font-size: 1em;
+            margin-left: 10px;
+        }
+        .nav-links li {
+            display: flex;
+            align-items: center;
+        }
 
         /* Hero Section */
         .hero {
@@ -365,6 +375,10 @@
             background: rgba(255, 255, 255, 0.9);
             color: #aa5825;
         }
+        footer a {
+            color: #aa5825;
+            text-decoration: none;
+        }
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -374,17 +388,17 @@
             .nav-links {
                 display: none;
                 position: fixed;
-                top: 60px; /* Below the navbar height */
+                top: 60px;
                 left: 0;
                 width: 100%;
-                max-height: calc(100vh - 60px); /* Full height minus navbar */
+                max-height: calc(100vh - 60px);
                 background: rgba(255, 255, 255, 0.95);
                 flex-direction: column;
                 align-items: center;
                 padding: 20px;
                 box-shadow: 0 5px 15px rgba(170, 88, 37, 0.2);
                 z-index: 1000;
-                overflow-y: auto; /* Enable vertical scrolling */
+                overflow-y: auto;
             }
             .nav-links.active {
                 display: flex;
@@ -411,12 +425,14 @@
         <div class="logo"><h2>Rokna Cafe</h2></div>
         <button class="hamburger">☰</button>
         <ul class="nav-links">
-            <li><a href="#home" class="nav-item">Home</a></li>
-            <li><a href="#menu" class="nav-item">Menu</a></li>
-            <li><a href="#services" class="nav-item">Services</a></li>
-            <li><a href="#about" class="nav-item">About Us</a></li>
-            <li><a href="#testimonials" class="nav-item">Testimonials</a></li>
-            <li><a href="#contact" class="nav-item">Contact</a></li>
+            {% if not user.is_authenticated %}
+                <li><a href="#home" class="nav-item">Home</a></li>
+                <li><a href="#menu" class="nav-item">Menu</a></li>
+                <li><a href="#services" class="nav-item">Services</a></li>
+                <li><a href="#about" class="nav-item">About Us</a></li>
+                <li><a href="#testimonials" class="nav-item">Testimonials</a></li>
+                <li><a href="#contact" class="nav-item">Contact</a></li>
+            {% endif %}
             {% if user.is_authenticated %}
                 <li><a href="{% url 'cafe:reserve_table' %}" class="nav-item">Reserve Table</a></li>
                 <li><a href="{% url 'cafe:reserve_ps_room' %}" class="nav-item">Reserve PS Room</a></li>
@@ -424,7 +440,10 @@
                 {% if user.is_staff %}
                     <li><a href="{% url 'cafe:admin_page' %}" class="nav-item">Admin</a></li>
                 {% endif %}
-                <li><a href="{% url 'cafe:logout' %}" class="nav-item logout-link">Logout ({{ user.username }})</a></li>
+                <li>
+                    <a href="{% url 'cafe:logout' %}" class="nav-item logout-link">Logout ({{ user.username }})</a>
+                    <span class="points-display">Points: {{ points }}</span>
+                </li>
             {% else %}
                 <li><a href="{% url 'login' %}" class="nav-item">Login</a></li>
                 <li><a href="{% url 'cafe:signup' %}" class="nav-item">Sign Up</a></li>
@@ -469,7 +488,7 @@
             </div>
         </div>
     </section>
-        <section id="about" class="about">
+    <section id="about" class="about">
         <h2>About Rokna Cafe</h2>
         <div class="about-content">
             <p>Rokna Cafe is not just a regular cafe! We bring together the love of coffee and gaming in one place. Here, you’ll find all your favorite drinks and desserts, along with PlayStation and cozy rooms for watching movies and enjoying time with friends.</p>
@@ -508,10 +527,9 @@
         </div>
     </section>
     <footer>
-        <p>© 2025 Rokna Cafe.created by serag mostafa</p>
+        <p>© 2025 Rokna Cafe. created by <a href="https://wa.me/201275311174">serag mostafa</a></p>
     </footer>
     <script>
-        // Hamburger Menu Toggle
         const hamburger = document.querySelector('.hamburger');
         const navLinks = document.querySelector('.nav-links');
 
@@ -520,17 +538,15 @@
             hamburger.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
         });
 
-        // Close menu when clicking a nav item on mobile
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
                     navLinks.classList.remove('active');
-                    hamburger.textContent = '☰'; // Reset to hamburger icon
+                    hamburger.textContent = '☰';
                 }
             });
         });
 
-        // Handle Logout specifically
         const logoutLink = document.querySelector('.logout-link');
         if (logoutLink) {
             logoutLink.addEventListener('click', (e) => {
@@ -538,11 +554,9 @@
                     navLinks.classList.remove('active');
                     hamburger.textContent = '☰';
                 }
-                // Logout proceeds normally via href
             });
         }
 
-        // Smooth Scrolling for In-Page Navigation
         document.querySelectorAll('.nav-item, .cta-button').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 const href = this.getAttribute('href');
@@ -555,7 +569,6 @@
             });
         });
 
-        // Particle Animation
         const particlesContainer = document.querySelector('.particles');
         function createParticle() {
             const particle = document.createElement('div');
@@ -572,7 +585,6 @@
         }
         setInterval(createParticle, 300);
 
-        // Float Animation for Particles
         const styleSheet = document.createElement('style');
         styleSheet.textContent = `
             @keyframes float {
@@ -583,7 +595,6 @@
         `;
         document.head.appendChild(styleSheet);
 
-        // Scroll Animations for Cards and Sections
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -599,7 +610,6 @@
             observer.observe(element);
         });
 
-        // CTA Button Hover Effect
         const ctaButton = document.querySelector('.cta-button');
         ctaButton.addEventListener('mouseover', () => {
             ctaButton.style.transform = 'scale(1.1) rotate(2deg)';
@@ -608,7 +618,6 @@
             ctaButton.style.transform = 'scale(1)';
         });
 
-        // Carousel Navigation
         const carouselTrack = document.querySelector('.carousel-track');
         const carouselItems = document.querySelectorAll('.carousel-item');
         const leftArrow = document.querySelector('.left-arrow');
@@ -637,7 +646,6 @@
             }
         });
 
-        // Initialize carousel
         updateCarousel();
     </script>
 </body>

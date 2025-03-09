@@ -354,7 +354,6 @@
     </div>
 
     <script>
-        // Date Filter and Real-time Updates
         const datePicker = document.getElementById('date-picker');
         let selectedDate = datePicker.value;
         let lastOrderId = Math.max(0, ...Array.from(document.querySelectorAll('#orders-list li'))
@@ -432,13 +431,49 @@
                                 </select>
                                 <button class="status-btn" data-order-id="${order.id}">Update Status</button>
                             </div>`;
-                        ordersList.append(newOrder);
+                        ordersList.appendChild(newOrder);  // Use appendChild instead of append
                         lastOrderId = Math.max(lastOrderId, order.id);
                     }
                 });
-                attachStatusButtonListeners();
+                attachStatusButtonListeners(true);  // Pass flag to only attach to new buttons
             })
             .catch(error => console.error('Error fetching new orders:', error.message));
+        }
+
+        function attachStatusButtonListeners(onlyNew = false) {
+            const buttons = document.querySelectorAll('.status-btn');
+            buttons.forEach(button => {
+                // Skip if already has a listener (check a custom attribute)
+                if (onlyNew && button.hasAttribute('data-listener-attached')) return;
+                if (!button.hasAttribute('data-listener-attached')) {
+                    button.addEventListener('click', function() {
+                        const orderId = this.getAttribute('data-order-id');
+                        const select = document.querySelector(`.status-select[data-order-id="${orderId}"]`);
+                        const newStatus = select.value;
+
+                        fetch(`/cafe/admin/update_order_status/${orderId}/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: `status=${encodeURIComponent(newStatus)}`
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                const li = document.querySelector(`li[data-order-id="${orderId}"]`);
+                                const parts = li.textContent.split(' - ');
+                                parts[3] = newStatus;
+                                li.firstChild.textContent = parts.join(' - ');
+                            } else {
+                                alert('Failed to update status');
+                            }
+                        })
+                        .catch(error => console.error('Error updating status:', error.message));
+                    });
+                    button.setAttribute('data-listener-attached', 'true');  // Mark as attached
+                }
+            });
         }
 
         datePicker.addEventListener('change', function() {
@@ -447,39 +482,8 @@
             lastOrderId = 0;
         });
 
-        function attachStatusButtonListeners() {
-            document.querySelectorAll('.status-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const orderId = this.getAttribute('data-order-id');
-                    const select = document.querySelector(`.status-select[data-order-id="${orderId}"]`);
-                    const newStatus = select.value;
-
-                    fetch(`/cafe/admin/update_order_status/${orderId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-CSRFToken': getCookie('csrftoken')
-                        },
-                        body: `status=${encodeURIComponent(newStatus)}`
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            const li = document.querySelector(`li[data-order-id="${orderId}"]`);
-                            const parts = li.textContent.split(' - ');
-                            parts[3] = newStatus;
-                            li.firstChild.textContent = parts.join(' - ');
-                        } else {
-                            alert('Failed to update status');
-                        }
-                    })
-                    .catch(error => console.error('Error updating status:', error.message));
-                });
-            });
-        }
-
         fetchOrdersForDate(selectedDate);
-        fetchNewOrders();
-        attachStatusButtonListeners();
+        attachStatusButtonListeners();  // Initial attachment
         setInterval(fetchNewOrders, 1000);
 
         function getCookie(name) {
