@@ -9,9 +9,27 @@ from django.utils import timezone
 import os
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.views import View
+from django.contrib.auth.models import User
+from .models import UserProfile
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        phone_number = request.POST.get('phone_number')
+        if form.is_valid() and phone_number:
+            user = form.save()  # Save the User
+            UserProfile.objects.create(user=user, phone_number=phone_number)  # Save phone number
+            return redirect('login')
+        else:
+            return render(request, 'cafe/signup.html', {
+                'form': form,
+                'error': 'Please provide a valid username, password, and phone number.'
+            })
+    else:
+        form = UserCreationForm()
+    return render(request, 'cafe/signup.html', {'form': form})
 
 def home(request):
     if request.method == 'POST':
@@ -35,16 +53,19 @@ class CustomLoginView(View):
         return render(request, self.template_name)
 
     def post(self, request):
-        username = request.POST.get('username')
+        phone_number = request.POST.get('username')  # Treat 'username' field as phone number
         password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        
+        # Authenticate using the phone number
+        user = authenticate(request, username=phone_number, password=password)
+        
         if user is not None:
             login(request, user)
             return redirect('cafe:home')  # Redirect to home on success
         else:
-            # Pass an error flag to the template
+            # Pass an error message to the template
             return render(request, self.template_name, {
-                'error': True
+                'error': 'Invalid phone number or password.'
             })
 def submit_feedback(request):
     if request.method == 'POST':
@@ -54,18 +75,6 @@ def submit_feedback(request):
             Testimonial.objects.create(author=author, content=content)
         return redirect('cafe:home')
     return redirect('cafe:home')  # Redirect GET requests to home
-
-
-# Signup View (No login required)
-def signup(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'cafe/signup.html', {'form': form})
 
 # Logout View (No login required)
 def logout(request):

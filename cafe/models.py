@@ -21,6 +21,13 @@ ITEM_TYPES = [
     ('iced_tea', 'Iced Tea'),
 ]
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=15, unique=True)  # e.g., "+1234567890"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.phone_number}"
+
 class Table(models.Model):
     number = models.IntegerField(unique=True)
     is_available = models.BooleanField(default=True)

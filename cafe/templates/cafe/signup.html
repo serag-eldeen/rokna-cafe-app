@@ -34,14 +34,14 @@
             flex-direction: column;
             gap: 15px;
         }
-        input[type="text"], input[type="password"] {
+        input[type="text"], input[type="password"], input[type="tel"] {
             padding: 10px;
             border: 1px solid #aa5825;
             border-radius: 5px;
             font-size: 1em;
             transition: border-color 0.3s ease;
         }
-        input[type="text"]:focus, input[type="password"]:focus {
+        input[type="text"]:focus, input[type="password"]:focus, input[type="tel"]:focus {
             border-color: #d89b6e;
             outline: none;
         }
@@ -71,6 +71,7 @@
         <form method="POST">
             {% csrf_token %}
             <input type="text" name="username" placeholder="Username" required>
+            <input type="tel" name="phone_number" placeholder="Phone Number (e.g., +1234567890)" required>
             <input type="password" name="password1" placeholder="Password" required>
             <input type="password" name="password2" placeholder="Confirm Password" required>
             <button type="submit">Submit</button>
