@@ -330,7 +330,7 @@
             <ul id="orders-list">
                 {% for order in orders %}
                     <li data-order-id="{{ order.id }}">
-                        {{ order.user.username }} - Table {{ order.table.number|default:"None" }} - {{ order.created_at }} - {{ order.status }}
+                        {{ order.user.username }} - {{ order.location }} - {{ order.created_at }} - {{ order.status }}
                         {% with order_items=order.orderitem_set.all %}
                             {% if order_items %}
                                 (Items: {% for oi in order_items %}{{ oi.item.name }} x{{ oi.quantity }}{% if not forloop.last %}, {% endif %}{% endfor %})
@@ -378,7 +378,7 @@
                         ? ` (Items: ${order.items.map(i => `${i.name} x${i.quantity}`).join(', ')})` 
                         : '';
                     return `<li data-order-id="${order.id}">
-                        ${order.user} - Table ${order.table} - ${order.created_at} - ${order.status}${itemsText}
+                        ${order.user} - ${order.location} - ${order.created_at} - ${order.status}${itemsText}
                         <div>
                             <select class="status-select" data-order-id="${order.id}">
                                 <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
@@ -422,7 +422,7 @@
                         const itemsText = order.items && order.items.length > 0 
                             ? ` (Items: ${order.items.map(i => `${i.name} x${i.quantity}`).join(', ')})` 
                             : '';
-                        newOrder.innerHTML = `${order.user} - Table ${order.table} - ${order.created_at} - ${order.status}${itemsText}
+                        newOrder.innerHTML = `${order.user} - ${order.location} - ${order.created_at} - ${order.status}${itemsText}
                             <div>
                                 <select class="status-select" data-order-id="${order.id}">
                                     <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
@@ -441,14 +441,12 @@
             .catch(error => console.error('Error fetching new orders:', error.message));
         }
 
-        // Event listener for date change
         datePicker.addEventListener('change', function() {
             selectedDate = this.value;
             fetchOrdersForDate(selectedDate);
-            lastOrderId = 0; // Reset to fetch all orders for new date
+            lastOrderId = 0;
         });
 
-        // Handle Status Update Buttons
         function attachStatusButtonListeners() {
             document.querySelectorAll('.status-btn').forEach(button => {
                 button.addEventListener('click', function() {
@@ -468,7 +466,7 @@
                         if (response.ok) {
                             const li = document.querySelector(`li[data-order-id="${orderId}"]`);
                             const parts = li.textContent.split(' - ');
-                            parts[3] = newStatus; // Update status part
+                            parts[3] = newStatus;
                             li.firstChild.textContent = parts.join(' - ');
                         } else {
                             alert('Failed to update status');
@@ -479,15 +477,11 @@
             });
         }
 
-        // Initial fetch and setup
         fetchOrdersForDate(selectedDate);
         fetchNewOrders();
         attachStatusButtonListeners();
-
-        // Poll every 1 second for new orders
         setInterval(fetchNewOrders, 1000);
 
-        // Function to get CSRF token
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {

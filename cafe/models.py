@@ -21,7 +21,6 @@ ITEM_TYPES = [
     ('iced_tea', 'Iced Tea'),
 ]
 
-# Table Model
 class Table(models.Model):
     number = models.IntegerField(unique=True)
     is_available = models.BooleanField(default=True)
@@ -29,7 +28,6 @@ class Table(models.Model):
     def __str__(self):
         return f"Table {self.number}"
 
-# Room Model
 class Room(models.Model):
     number = models.IntegerField(unique=True)
     is_available = models.BooleanField(default=True)
@@ -37,7 +35,6 @@ class Room(models.Model):
     def __str__(self):
         return f"Room {self.number}"
 
-# Item Model (for Orders)
 class Item(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=6, decimal_places=2)
@@ -47,8 +44,6 @@ class Item(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_item_type_display()})"
-
-# ... (rest of the models remain unchanged)
 
 class TableReservation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -74,14 +69,12 @@ class RoomReservation(models.Model):
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    items = models.ManyToManyField(Item, through='OrderItem')
-    table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)  # Automatically set to now in server's timezone
+    location = models.CharField(max_length=50)  # e.g., "table_1" or "room_1"
+    created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, default='Pending')
 
     def __str__(self):
-        table_str = f"Table {self.table.number}" if self.table else "No Table"
-        return f"Order by {self.user.username} - {table_str} - {self.created_at}"
+        return f"Order by {self.user.username} - {self.location} - {self.created_at}"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

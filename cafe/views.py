@@ -180,9 +180,13 @@ def reserve_ps_room(request):
 
 @login_required
 def place_order(request):
+    tables = Table.objects.all()
+    rooms = Room.objects.all()
+    items = Item.objects.filter(is_available=True)
+    item_types = ITEM_TYPES
+
     if request.method == 'POST':
-        items = Item.objects.filter(is_available=True)
-        table_number = request.POST.get('table_number')
+        location = request.POST.get('location')  # Expecting "table_1" or "room_1"
         item_type = request.POST.get('item_type')
         selected_items = []
 
@@ -208,61 +212,75 @@ def place_order(request):
         if not selected_items:
             return render(request, 'cafe/place_order.html', {
                 'items': items,
-                'tables': Table.objects.all(),
-                'item_types': ITEM_TYPES,
+                'tables': tables,
+                'rooms': rooms,
+                'item_types': item_types,
                 'selected_type': item_type,
                 'error': 'No items selected'
             })
 
-        if not table_number:
+        if not location:
             return render(request, 'cafe/place_order.html', {
                 'items': items,
-                'tables': Table.objects.all(),
-                'item_types': ITEM_TYPES,
+                'tables': tables,
+                'rooms': rooms,
+                'item_types': item_types,
                 'selected_type': item_type,
-                'error': 'Please select a table number'
+                'error': 'Please select a location'
             })
 
+        # Validate location
         try:
-            table = Table.objects.get(number=table_number)
-        except Table.DoesNotExist:
+            location_type, location_number = location.split('_')
+            location_number = int(location_number)  # Ensure it's a number
+            if location_type == 'table' and not Table.objects.filter(number=location_number).exists():
+                raise ValueError("Invalid table number")
+            elif location_type == 'room' and not Room.objects.filter(number=location_number).exists():
+                raise ValueError("Invalid room number")
+            elif location_type not in ['table', 'room']:
+                raise ValueError("Invalid location type")
+        except (ValueError, IndexError):
             return render(request, 'cafe/place_order.html', {
                 'items': items,
-                'tables': Table.objects.all(),
-                'item_types': ITEM_TYPES,
+                'tables': tables,
+                'rooms': rooms,
+                'item_types': item_types,
                 'selected_type': item_type,
-                'error': 'Invalid table number'
+                'error': 'Invalid location selected'
             })
 
-        order = Order(user=request.user, table=table)
+        order = Order(user=request.user, location=location)
         order.save()
         for item, quantity in selected_items:
             if not item.is_available:
                 order.delete()
                 return render(request, 'cafe/place_order.html', {
                     'items': items,
-                    'tables': Table.objects.all(),
-                    'item_types': ITEM_TYPES,
+                    'tables': tables,
+                    'rooms': rooms,
+                    'item_types': item_types,
                     'selected_type': item_type,
                     'error': f'{item.name} is out of stock'
                 })
             order_item = OrderItem.objects.create(order=order, item=item, quantity=quantity)
             print(f"Saved OrderItem: {order_item.item.name} x{order_item.quantity}")
 
+        # Format location for user-friendly message
+        location_display = f"{location_type.capitalize()} {location_number}"
         return render(request, 'cafe/place_order.html', {
             'items': items,
-            'tables': Table.objects.all(),
-            'item_types': ITEM_TYPES,
+            'tables': tables,
+            'rooms': rooms,
+            'item_types': item_types,
             'selected_type': item_type,
-            'message': 'Order placed successfully!'
+            'message': f'Order placed successfully for {location_display}!'
         })
 
-    items = Item.objects.filter(is_available=True)
-    tables = Table.objects.all()
     return render(request, 'cafe/place_order.html', {
         'items': items,
         'tables': tables,
-        'item_types': ITEM_TYPES,
+        'rooms': rooms,
+        'item_types': item_types,
         'selected_type': None
     })
 # Staff Check
@@ -408,7 +426,7 @@ def get_orders(request):
             {
                 'id': order.id,
                 'user': order.user.username,
-                'table': order.table.number if order.table else 'None',
+                'location': order.location,  # Changed from 'table' to 'location'
                 'created_at': timezone.localtime(order.created_at).strftime('%Y-%m-%d %H:%M:%S'),
                 'status': order.status,
                 'items': [{'name': oi.item.name, 'quantity': oi.quantity} for oi in order.orderitem_set.all()]
@@ -437,7 +455,7 @@ def get_new_orders(request):
         {
             'id': order.id,
             'user': order.user.username,
-            'table': order.table.number if order.table else 'None',
+            'location': order.location,  # Changed from 'table' to 'location'
             'created_at': timezone.localtime(order.created_at).strftime('%Y-%m-%d %H:%M:%S'),
             'status': order.status,
             'items': [{'name': oi.item.name, 'quantity': oi.quantity} for oi in order.orderitem_set.all()]
@@ -667,18 +685,32 @@ def delete_room(request, room_id):
             'error': 'Room not found'
         })
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .models import Item, ITEM_TYPES
+
+# Custom decorator to check if user is staff
+def is_staff(user):
+    return user.is_staff
+
 @login_required
 @user_passes_test(is_staff)
 def add_item(request):
     """
-    Handle adding a new item via POST request from the admin panel.
+    Handle adding a new item via POST request and render items_page.html.
     
     Args:
         request: HTTP request object.
     
     Returns:
-        Redirect to admin_page on success, or with an error message.
+        Renders items_page.html with success or error message.
     """
+    # Common context for rendering items_page.html
+    context = {
+        'items': Item.objects.all(),
+        'item_types': ITEM_TYPES
+    }
+
     if request.method == 'POST':
         name = request.POST.get('name')
         price = request.POST.get('price')
@@ -687,16 +719,8 @@ def add_item(request):
 
         # Validate inputs
         if not name or not price or not item_type:
-            return render(request, 'cafe/admin_page.html', {
-                'error': 'All fields (name, price, item type) are required.',
-                'tables': Table.objects.all(),
-                'rooms': Room.objects.all(),
-                'items': Item.objects.all(),
-                'table_reservations': TableReservation.objects.all(),
-                'room_reservations': RoomReservation.objects.all(),
-                'orders': Order.objects.all(),
-                'item_types': ITEM_TYPES
-            })
+            context['error'] = 'All fields (name, price, item type) are required.'
+            return render(request, 'cafe/items_page.html', context)
 
         try:
             price = float(price)  # Ensure price is a valid number
@@ -712,21 +736,17 @@ def add_item(request):
                 image=image
             )
             item.save()
-            return redirect('cafe:admin_page')
+            context['message'] = f'Item "{name}" added successfully!'
+            # Refresh items list to include the new item
+            context['items'] = Item.objects.all()
+            return render(request, 'cafe/items_page.html', context)
         except ValueError as e:
-            return render(request, 'cafe/admin_page.html', {
-                'error': str(e),
-                'tables': Table.objects.all(),
-                'rooms': Room.objects.all(),
-                'items': Item.objects.all(),
-                'table_reservations': TableReservation.objects.all(),
-                'room_reservations': RoomReservation.objects.all(),
-                'orders': Order.objects.all(),
-                'item_types': ITEM_TYPES
-            })
+            context['error'] = str(e)
+            return render(request, 'cafe/items_page.html', context)
 
-    # If not POST, redirect back to admin page
-    return redirect('cafe:admin_page')
+    # If not POST, render items_page.html (e.g., initial GET request)
+    return render(request, 'cafe/items_page.html', context)
+
 @csrf_exempt
 @login_required
 @user_passes_test(is_staff)

@@ -385,11 +385,18 @@
             <p>Hello, {{ user.username }}! <a href="{% url 'cafe:logout' %}">Logout</a></p>
             <form method="POST" id="order-form" action="{% url 'cafe:place_order' %}">
                 {% csrf_token %}
-                <select name="table_number" class="select-field" required>
-                    <option value="" disabled selected>Select Table Number</option>
-                    {% for table in tables %}
-                        <option value="{{ table.number }}">Table {{ table.number }}</option>
-                    {% endfor %}
+                <select name="location" class="select-field" required>
+                    <option value="" disabled selected>Select Location</option>
+                    <optgroup label="Tables">
+                        {% for table in tables %}
+                            <option value="table_{{ table.number }}">Table {{ table.number }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Rooms">
+                        {% for room in rooms %}
+                            <option value="room_{{ room.number }}">Room {{ room.number }}</option>
+                        {% endfor %}
+                    </optgroup>
                 </select>
                 <select name="item_type" class="select-field" onchange="this.form.submit()">
                     <option value="" {% if not selected_type %}selected{% endif %}>All Items</option>
@@ -407,7 +414,7 @@
                             {% endif %}
                             <h3>{{ item.name }}</h3>
                             <p>${{ item.price }}</p>
-                            <input type="checkbox" name="item_{{ item.id }}" value="{{item.id}}">
+                            <input type="checkbox" name="item_{{ item.id }}" value="{{ item.id }}">
                             <input type="number" name="quantity_{{ item.id }}" min="1" value="1" disabled>
                         </div>
                     {% endfor %}
@@ -426,14 +433,12 @@
             const quantityInput = checkbox.nextElementSibling;
             checkbox.addEventListener('change', function() {
                 quantityInput.disabled = !this.checked;
-                // Remove disabled attribute before form submission if checked
                 if (this.checked) {
                     quantityInput.removeAttribute('disabled');
                 }
             });
         });
 
-        // Ensure all enabled quantity inputs are submitted
         document.getElementById('order-form').addEventListener('submit', function(e) {
             document.querySelectorAll('.item-card input[type="checkbox"]:checked').forEach(checkbox => {
                 const quantityInput = checkbox.nextElementSibling;
